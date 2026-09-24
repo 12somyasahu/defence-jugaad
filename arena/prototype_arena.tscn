@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3]
+
+[sub_resource type="RectangleShape2D" id="Horizontal"]
+size = Vector2(1100, 20)
+[sub_resource type="RectangleShape2D" id="Vertical"]
+size = Vector2(20, 600)
+
+[node name="PrototypeArena" type="Node2D"]
+[node name="Ground" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-540, -290, 540, -290, 540, 290, -540, 290)
+color = Color(0.12, 0.15, 0.18, 1)
+[node name="Walls" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+[node name="North" type="CollisionShape2D" parent="Walls"]
+position = Vector2(0, -300)
+shape = SubResource("Horizontal")
+[node name="South" type="CollisionShape2D" parent="Walls"]
+position = Vector2(0, 300)
+shape = SubResource("Horizontal")
+[node name="West" type="CollisionShape2D" parent="Walls"]
+position = Vector2(-550, 0)
+shape = SubResource("Vertical")
+[node name="East" type="CollisionShape2D" parent="Walls"]
+position = Vector2(550, 0)
+shape = SubResource("Vertical")
