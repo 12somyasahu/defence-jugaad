@@ -5,6 +5,8 @@ signal hands_changed(left: JunkComponent, right: JunkComponent)
 signal carried_weapon_changed(weapon: JugaadWeapon)
 signal feedback(message: String)
 signal weapon_placed(weapon: JugaadWeapon)
+signal weapon_picked_up(weapon: JugaadWeapon)
+signal components_scattered(items: Array[JunkComponent])
 
 const COMPONENT: PackedScene = preload("res://components/junk_component.tscn")
 const WEAPON: PackedScene = preload("res://weapons/jugaad_weapon.tscn")
@@ -26,6 +28,8 @@ func setup(player_node: JugaadPlayer, workshop_node: Workshop, enemy_container: 
 	player = player_node
 	workshop = workshop_node
 	enemies = enemy_container
+	player.enemies = enemies
+	player.hit.connect(_on_player_hit)
 	# Fixed prototype supply: two of each recipe pair, plus two Table Fans.
 	var supply: Array[int] = [1, 5, 0, 3, 2, 3, 4, 1, 5, 0, 3, 2, 3, 4]
 	for i in supply.size():
@@ -60,9 +64,31 @@ func interact() -> void:
 	if is_instance_valid(carried_weapon):
 		_place_weapon()
 		return
+	var jammed_weapon: JugaadWeapon = _nearest_weapon(true)
+	if jammed_weapon != null:
+		if jammed_weapon.repair():
+			_show_feedback("THAK! %d/%d" % [jammed_weapon.repair_progress, jammed_weapon.repair_hits_required] if jammed_weapon.jammed else "THOKO! %s working again." % JugaadWeapon.NAMES[jammed_weapon.kind])
+		return
+	var working_weapon: JugaadWeapon = _nearest_weapon(false)
+	if working_weapon != null:
+		if is_instance_valid(left_hand) or is_instance_valid(right_hand):
+			_show_feedback("Drop hand components with 1 / 2 before carrying a Jugaad.")
+			return
+		working_weapon.pick_up()
+		working_weapon.reparent(player)
+		working_weapon.position = Vector2(0, -52)
+		carried_weapon = working_weapon
+		carried_weapon_changed.emit(carried_weapon)
+		weapon_picked_up.emit(carried_weapon)
+		_update_hands()
+		_show_feedback("Picked up %s. E: place again." % JugaadWeapon.NAMES[carried_weapon.kind])
+		return
 	var nearest: JunkComponent
 	var distance: float = PICKUP_DISTANCE * PICKUP_DISTANCE
-	for item: JunkComponent in components.get_children():
+	for child in components.get_children():
+		var item: JunkComponent = child as JunkComponent
+		if item == null:
+			continue
 		var candidate: float = player.global_position.distance_squared_to(item.global_position)
 		if candidate <= distance:
 			nearest = item
@@ -83,6 +109,45 @@ func interact() -> void:
 	nearest.set_held(true)
 	_show_feedback("Picked up " + nearest.display_name())
 	_update_hands()
+
+func _nearest_weapon(want_jammed: bool) -> JugaadWeapon:
+	var nearest: JugaadWeapon
+	var distance: float = PICKUP_DISTANCE * PICKUP_DISTANCE
+	for child in weapons.get_children():
+		var weapon: JugaadWeapon = child as JugaadWeapon
+		if weapon == null or not weapon.active or not weapon.is_placed or weapon.jammed != want_jammed:
+			continue
+		var candidate: float = player.global_position.distance_squared_to(weapon.global_position)
+		if candidate <= distance:
+			nearest = weapon
+			distance = candidate
+	return nearest
+
+func _on_player_hit(direction: Vector2) -> void:
+	if not active:
+		return
+	var dropped: Array[JunkComponent] = []
+	var hands: Array[JunkComponent] = [left_hand, right_hand]
+	for i in hands.size():
+		var item: JunkComponent = hands[i]
+		if not is_instance_valid(item):
+			continue
+		var at: Vector2 = player.global_position + direction.rotated(-0.8 if i == 0 else 0.8) * 40.0
+		# Keep loose junk away from the Workshop and within reachable arena space.
+		var from_workshop: Vector2 = at - workshop.global_position
+		if from_workshop.length() < 72.0:
+			at = workshop.global_position + (from_workshop.normalized() if not from_workshop.is_zero_approx() else direction) * 72.0
+		at = at.clamp(ARENA.position + Vector2(20, 20), ARENA.end - Vector2(20, 20))
+		item.reparent(components)
+		item.global_position = at
+		item.set_held(false)
+		dropped.append(item)
+	left_hand = null
+	right_hand = null
+	_update_hands()
+	if not dropped.is_empty():
+		components_scattered.emit(dropped)
+	_show_feedback("OOF! Junk scattered!" if not dropped.is_empty() else "OOF!")
 
 func drop_hand(left: bool) -> void:
 	if not active:
@@ -136,8 +201,9 @@ func can_place(at: Vector2) -> bool:
 		return false
 	if at.distance_to(workshop.global_position) < 78.0:
 		return false
-	for weapon: JugaadWeapon in weapons.get_children():
-		if at.distance_to(weapon.global_position) < 60.0:
+	for child in weapons.get_children():
+		var weapon: JugaadWeapon = child as JugaadWeapon
+		if weapon != null and at.distance_to(weapon.global_position) < 60.0:
 			return false
 	return true
 
@@ -157,9 +223,14 @@ func _place_weapon() -> void:
 
 func stop() -> void:
 	active = false
+	for child in weapons.get_children():
+		var weapon: JugaadWeapon = child as JugaadWeapon
+		if weapon != null:
+			weapon.active = false
 	weapons.process_mode = Node.PROCESS_MODE_DISABLED
 	projectiles.process_mode = Node.PROCESS_MODE_DISABLED
 	if is_instance_valid(carried_weapon):
+		carried_weapon.active = false
 		carried_weapon.process_mode = Node.PROCESS_MODE_DISABLED
 	queue_redraw()
 

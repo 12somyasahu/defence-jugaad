@@ -33,7 +33,7 @@ func debug_damage_gunda() -> void:
 		return
 	for child in enemies.get_children():
 		var enemy: Gunda = child as Gunda
-		if enemy.current_hp > 0:
+		if enemy != null and enemy.current_hp > 0:
 			enemy.receive_damage(15)
 			break
 
@@ -48,8 +48,10 @@ func _on_destroyed() -> void:
 	player.velocity = Vector2.ZERO
 	spawner.active = false
 	jugaad_loop.stop()
-	for enemy: Gunda in enemies.get_children():
-		enemy.active = false
-		enemy.velocity = Vector2.ZERO
+	for child in enemies.get_children():
+		var enemy: Gunda = child as Gunda
+		if enemy != null:
+			enemy.active = false
+			enemy.velocity = Vector2.ZERO
 	defeat_label.show()
 	defeated.emit()

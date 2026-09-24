@@ -16,7 +16,12 @@ func _physics_process(delta: float) -> void:
 	_remaining -= delta
 	if _remaining <= 0.0:
 		_remaining = spawn_interval
-		if enemies.get_child_count() < maximum_enemies:
+		var count: int = 0
+		for child in enemies.get_children():
+			var existing: Gunda = child as Gunda
+			if existing != null and existing.current_hp > 0:
+				count += 1
+		if count < maximum_enemies:
 			var enemy: Gunda = GUNDA.instantiate()
 			enemy.workshop = workshop
 			enemies.add_child(enemy)

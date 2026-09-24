@@ -3,14 +3,26 @@ extends Node2D
 
 signal fired
 signal placed
+signal instability_changed(current: float, maximum: float)
+signal jammed_changed(value: bool)
+signal repair_hit(progress: int, required: int)
+signal repaired
+signal picked_up
 
 enum Kind { CHAKRI_GUN, DHAMAAL_BOX, PRESSURE_HORN }
 const NAMES: Array[String] = ["Chakri Gun", "Dhamaal Box", "Pressure Horn"]
 const SOURCE_PAIRS: Array = [[1, 5], [0, 3], [2, 3]]
 const COMPONENT: PackedScene = preload("res://components/junk_component.tscn")
 const PROJECTILE = preload("res://weapons/scrap_projectile.gd")
+const INSTABILITY_PER_ATTACK: Array[float] = [2.0, 20.0, 12.5]
 
 @export var kind: Kind = Kind.CHAKRI_GUN
+@export_range(1.0, 1000.0) var maximum_instability: float = 100.0
+@export_range(1, 10) var repair_hits_required: int = 3
+var instability: float = 0.0
+var jammed: bool = false
+var repair_progress: int = 0
+var active: bool = true
 var is_placed: bool = false
 var facing: Vector2 = Vector2.RIGHT
 var enemies: Node2D
@@ -31,19 +43,56 @@ func _ready() -> void:
 		part.set_held(true)
 		part.position = Vector2(-12 if i == 0 else 12, 0)
 		part.scale = Vector2.ONE * 0.65
+	_update_maintenance()
 
 func place_at(world_position: Vector2, direction: Vector2) -> void:
 	global_position = world_position
 	facing = direction.normalized()
 	is_placed = true
-	_remaining = 0.0
 	placed.emit()
 	queue_redraw()
+
+func pick_up() -> void:
+	is_placed = false
+	_flash = 0.0
+	picked_up.emit()
+	queue_redraw()
+
+func repair() -> bool:
+	if not active or not is_placed or not jammed:
+		return false
+	repair_progress += 1
+	repair_hit.emit(repair_progress, repair_hits_required)
+	if repair_progress >= repair_hits_required:
+		instability = 0.0
+		jammed = false
+		repair_progress = 0
+		_remaining = attack_cooldown
+		instability_changed.emit(instability, maximum_instability)
+		jammed_changed.emit(false)
+		repaired.emit()
+	_update_maintenance()
+	return true
+
+func _add_instability() -> void:
+	instability = minf(maximum_instability, instability + INSTABILITY_PER_ATTACK[kind])
+	instability_changed.emit(instability, maximum_instability)
+	if instability >= maximum_instability:
+		jammed = true
+		_flash = 0.0
+		jammed_changed.emit(true)
+	_update_maintenance()
+
+func _update_maintenance() -> void:
+	var ratio: float = instability / maximum_instability
+	var warning: String = "STABLE" if ratio < 0.5 else ("UNSTABLE" if ratio < 0.8 else "WARNING")
+	$Maintenance.text = "KHATAK! JAMMED\nE: THAK %d/%d" % [repair_progress, repair_hits_required] if jammed else "%s %d%%" % [warning, roundi(ratio * 100)]
+	$Maintenance.modulate = Color.TOMATO if jammed or ratio >= 0.8 else (Color.GOLD if ratio >= 0.5 else Color.LIGHT_GREEN)
 
 func _physics_process(delta: float) -> void:
 	_flash = maxf(0, _flash - delta)
 	queue_redraw()
-	if not is_placed or not is_instance_valid(enemies):
+	if not active or jammed or not is_placed or not is_instance_valid(enemies):
 		return
 	_remaining = maxf(0, _remaining - delta)
 	if _remaining > 0:
@@ -51,8 +100,9 @@ func _physics_process(delta: float) -> void:
 	var targets: Array[Gunda] = []
 	var nearest: Gunda
 	var nearest_distance: float = INF
-	for enemy: Gunda in enemies.get_children():
-		if not enemy.active or enemy.current_hp <= 0:
+	for child in enemies.get_children():
+		var enemy: Gunda = child as Gunda
+		if enemy == null or not enemy.active or enemy.current_hp <= 0:
 			continue
 		var offset: Vector2 = enemy.global_position - global_position
 		if offset.length() > attack_range:
@@ -85,6 +135,7 @@ func _physics_process(delta: float) -> void:
 				enemy.receive_damage(3)
 				enemy.apply_knockback((enemy.global_position - global_position).normalized() * 300.0)
 	fired.emit()
+	_add_instability()
 
 func _draw() -> void:
 	draw_rect(Rect2(-25, -20, 50, 40), Color(0.2, 0.24, 0.28))
