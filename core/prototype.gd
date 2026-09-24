@@ -9,10 +9,12 @@ var is_defeated: bool = false
 @onready var spawner: GundaSpawner = $EastSpawn
 @onready var status: Label = $PrototypeOverlay/Status
 @onready var defeat_label: Label = $PrototypeOverlay/Defeat
+@onready var jugaad_loop: JugaadLoop = $JugaadLoop
 
 func _ready() -> void:
 	spawner.workshop = workshop
 	spawner.enemies = enemies
+	jugaad_loop.setup(player, workshop, enemies)
 	workshop.health_changed.connect(_on_health_changed)
 	workshop.destroyed.connect(_on_destroyed)
 	_on_health_changed(workshop.current_hp, workshop.maximum_hp)
@@ -45,6 +47,7 @@ func _on_destroyed() -> void:
 	player.active = false
 	player.velocity = Vector2.ZERO
 	spawner.active = false
+	jugaad_loop.stop()
 	for enemy: Gunda in enemies.get_children():
 		enemy.active = false
 		enemy.velocity = Vector2.ZERO

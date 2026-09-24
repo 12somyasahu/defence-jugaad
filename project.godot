@@ -62,6 +62,26 @@ debug_damage_gunda={
 "events": [Object(InputEventKey,"physical_keycode":4194334)]
 }
 
+interact={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":69)]
+}
+
+combine={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":81)]
+}
+
+drop_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":49)]
+}
+
+drop_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":50)]
+}
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

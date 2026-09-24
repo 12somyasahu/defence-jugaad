@@ -1,38 +1,54 @@
-[gd_scene load_steps=6 format=3 uid="uid://bfon4olrc1k18"]
+[gd_scene format=3 uid="uid://bfon4olrc1k18"]
 
-[ext_resource type="Script" path="res://core/prototype.gd" id="1"]
+[ext_resource type="Script" uid="uid://dsh7uiukmlp38" path="res://core/prototype.gd" id="1"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://workshop/workshop.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://arena/prototype_arena.tscn" id="4"]
-[ext_resource type="Script" path="res://core/gunda_spawner.gd" id="5"]
+[ext_resource type="Script" uid="uid://ns36ftpvt58y" path="res://core/gunda_spawner.gd" id="5"]
+[ext_resource type="PackedScene" path="res://core/jugaad_loop.tscn" id="6"]
 
 [node name="Main" type="Node2D" unique_id=943374884]
 script = ExtResource("1")
 
-[node name="Arena" parent="." instance=ExtResource("4")]
-[node name="Workshop" parent="." instance=ExtResource("3")]
-[node name="Player" parent="." instance=ExtResource("2")]
+[node name="Arena" parent="." unique_id=1476739955 instance=ExtResource("4")]
+
+[node name="Workshop" parent="." unique_id=1489812899 instance=ExtResource("3")]
+
+[node name="Player" parent="." unique_id=1632094878 instance=ExtResource("2")]
 position = Vector2(-180, 100)
-[node name="Enemies" type="Node2D" parent="."]
-[node name="EastSpawn" type="Marker2D" parent="."]
+
+[node name="Enemies" type="Node2D" parent="." unique_id=1735122700]
+
+[node name="JugaadLoop" parent="." unique_id=616316579 instance=ExtResource("6")]
+
+[node name="EastSpawn" type="Marker2D" parent="." unique_id=760898404]
 position = Vector2(430, 0)
 script = ExtResource("5")
-[node name="EntryLabel" type="Label" parent="EastSpawn"]
+
+[node name="EntryLabel" type="Label" parent="EastSpawn" unique_id=571735379]
 offset_left = -55.0
 offset_top = -130.0
 text = "GUNDAS FROM EAST"
-[node name="Camera2D" type="Camera2D" parent="."]
-[node name="PrototypeOverlay" type="CanvasLayer" parent="."]
-[node name="Status" type="Label" parent="PrototypeOverlay"]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1058419410]
+
+[node name="PrototypeOverlay" type="CanvasLayer" parent="." unique_id=780971281]
+
+[node name="Status" type="Label" parent="PrototypeOverlay" unique_id=1408572019]
 offset_left = 20.0
 offset_top = 12.0
-[node name="DebugHint" type="Label" parent="PrototypeOverlay"]
+
+[node name="DebugHint" type="Label" parent="PrototypeOverlay" unique_id=306613012]
 offset_left = 20.0
-offset_top = 36.0
+offset_top = 41.0
+offset_right = 679.0
+offset_bottom = 64.0
 text = "DEBUG ONLY: F3 damages oldest Gunda by 15 (two presses kill). Blue square = player."
-[node name="Defeat" type="Label" parent="PrototypeOverlay"]
+
+[node name="Defeat" type="Label" parent="PrototypeOverlay" unique_id=1436226220]
 visible = false
 offset_left = 370.0
 offset_top = 200.0
-text = "WORKSHOP DESTROYED\nDefeat - press R to restart"
+text = "WORKSHOP DESTROYED
+Defeat - press R to restart"
 horizontal_alignment = 1
