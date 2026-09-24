@@ -1,0 +1,17 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# OS files and temporary output
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# Generated exports; retain empty platform directories
+/builds/**/*
+!/builds/**/
+!/builds/**/.gitkeep
+
+# Machine-local MCP client launcher; keep the shared addon and its template
+/.mcp.json
