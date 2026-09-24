@@ -1,0 +1,91 @@
+[gd_scene format=3 uid="uid://cx6q8rtye2j8h"]
+
+[node name="HUD" type="CanvasLayer"]
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="TopPanel" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="WorkshopHealth" type="VBoxContainer" parent="MarginContainer/TopPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="MarginContainer/TopPanel/WorkshopHealth"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.945098, 0.768627, 0.0588235, 1)
+theme_override_font_sizes/font_size = 24
+text = "WORKSHOP HP"
+
+[node name="ProgressBar" type="ProgressBar" parent="MarginContainer/TopPanel/WorkshopHealth"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+value = 100.0
+
+[node name="WaveInfo" type="VBoxContainer" parent="MarginContainer/TopPanel"]
+layout_mode = 2
+
+[node name="WaveLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "WAVE 1"
+horizontal_alignment = 2
+
+[node name="ScrapLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.533333, 0.827451, 0.192157, 1)
+text = "SCRAP: 0"
+horizontal_alignment = 2
+
+[node name="BottomPanel" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+alignment = 1
+
+[node name="Hands" type="HBoxContainer" parent="MarginContainer/BottomPanel"]
+layout_mode = 2
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="LeftHand" type="VBoxContainer" parent="MarginContainer/BottomPanel/Hands"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/BottomPanel/Hands/LeftHand"]
+layout_mode = 2
+text = "LEFT HAND"
+horizontal_alignment = 1
+
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/BottomPanel/Hands/LeftHand"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+color = Color(0.172549, 0.243137, 0.313726, 0.8)
+
+[node name="RightHand" type="VBoxContainer" parent="MarginContainer/BottomPanel/Hands"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/BottomPanel/Hands/RightHand"]
+layout_mode = 2
+text = "RIGHT HAND"
+horizontal_alignment = 1
+
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/BottomPanel/Hands/RightHand"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+color = Color(0.172549, 0.243137, 0.313726, 0.8)
+
+[node name="PromptLabel" type="Label" parent="MarginContainer/BottomPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.905882, 0.298039, 0.235294, 1)
+theme_override_font_sizes/font_size = 20
+text = "[ E - PICK UP ]"
+horizontal_alignment = 1

@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://e4y6s7t8u9v0a"]
+
+[node name="JamWarning" type="Node2D"]
+
+[node name="Label" type="Label" parent="."]
+offset_left = -30.0
+offset_top = -40.0
+offset_right = 30.0
+offset_bottom = -17.0
+theme_override_colors/font_color = Color(0.905882, 0.298039, 0.235294, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "THOKO!"
+horizontal_alignment = 1
+
+[node name="SmokeParticles" type="CPUParticles2D" parent="."]
+amount = 20
+lifetime = 1.5
+emission_shape = 1
+emission_sphere_radius = 10.0
+gravity = Vector2(0, -50)
+scale_amount_min = 5.0
+scale_amount_max = 10.0
+color = Color(0.3, 0.3, 0.3, 0.7)

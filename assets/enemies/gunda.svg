@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+
+    <!-- Scrap Shield/Armor -->
+    <path d="M 25 40 L 75 40 L 70 80 L 30 80 Z" fill="#d35400"/>
+    <rect x="25" y="40" width="50" height="10" fill="#c0392b"/>
+    <!-- Bucket Head -->
+    <path d="M 35 15 L 65 15 L 60 35 L 40 35 Z" fill="#7f8c8d"/>
+    <rect x="40" y="25" width="20" height="5" fill="#2c3e50"/> <!-- Eye slit -->
+    <!-- Arms -->
+    <rect x="15" y="45" width="10" height="30" rx="5" fill="#e67e22"/>
+    <rect x="75" y="45" width="10" height="30" rx="5" fill="#e67e22"/>
+    <!-- Weapon (Pipe) -->
+    <rect x="5" y="60" width="30" height="5" fill="#bdc3c7" transform="rotate(-45 20 60)"/>
+
+</svg>

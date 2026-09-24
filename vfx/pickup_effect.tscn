@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://d3x5r6v7w8y9z"]
+
+[node name="PickupEffect" type="CPUParticles2D"]
+emitting = false
+amount = 15
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.8
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 50.0
+initial_velocity_max = 100.0
+scale_amount_min = 2.0
+scale_amount_max = 5.0
+color = Color(0.945098, 0.768627, 0.0588235, 1)
