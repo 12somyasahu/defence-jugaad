@@ -24,18 +24,24 @@ func setup(currency: Node, loop: JugaadLoop, player_node: JugaadPlayer) -> void:
 	visible = false
 	$ShopPanel.hide()
 
-func open_session() -> void:
-	if not active or available:
-		return
+# Fresh three unique offers. WaveDirector calls this once per legitimate shop phase.
+func restock() -> void:
 	var pool: Array[int] = [0, 1, 2, 3, 4, 5]
 	pool.shuffle()
 	offers.assign(pool.slice(0, 3))
+
+func open_session() -> void:
+	if not active or available:
+		return
+	# Opening/reopening never rerolls; only restock() does.
+	if offers.is_empty():
+		restock()
 	available = true
 	visible = true
 	_update_panel()
 	availability_changed.emit(true)
 	offers_changed.emit(offers.duplicate())
-	feedback.emit("KABADIWALA open! Stall southeast of Workshop. DEBUG F6: close.")
+	feedback.emit("KABADIWALA open! Stall southeast of Workshop.")
 
 func close_session() -> void:
 	if not available:
@@ -94,7 +100,7 @@ func _pickup_point(slot: int) -> Vector2:
 	var offsets: Array[Vector2] = [Vector2(-48, -56), Vector2(0, -56), Vector2(48, -56), Vector2(-48, 56), Vector2(0, 56), Vector2(48, 56)]
 	for i in offsets.size():
 		var at: Vector2 = global_position + offsets[(slot + i) % offsets.size()]
-		if not JugaadLoop.ARENA.grow(-24).has_point(at) or at.distance_to(jugaad_loop.workshop.global_position) < 72:
+		if not jugaad_loop.arena.grow(-24).has_point(at) or at.distance_to(jugaad_loop.workshop.global_position) < 72:
 			continue
 		var blocked: bool = false
 		for child in jugaad_loop.weapons.get_children():
@@ -116,5 +122,5 @@ func _update_panel() -> void:
 	var text: String = "KABADIWALA  |  SCRAP: %d\n" % economy.scrap
 	for i in offers.size():
 		text += "[%d] %s\n" % [i + 1, "SOLD" if offers[i] < 0 else "%s - %d Scrap" % [JunkComponent.DISPLAY_NAMES[offers[i]], component_price]]
-	text += "Buy: 1 / 2 / 3 (hand drops disabled here)\nE: pick up purchased junk | DEBUG F6: close"
+	text += "Buy: 1 / 2 / 3 (hand drops disabled here)\nE: pick up purchased junk | Closes when the wave starts"
 	$ShopPanel/Panel/Offers.text = text

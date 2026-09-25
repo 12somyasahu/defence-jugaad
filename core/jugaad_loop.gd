@@ -12,6 +12,8 @@ const COMPONENT: PackedScene = preload("res://components/junk_component.tscn")
 const WEAPON: PackedScene = preload("res://weapons/jugaad_weapon.tscn")
 const PICKUP_DISTANCE: float = 52.0
 const ARENA: Rect2 = Rect2(-540, -290, 1080, 580)
+# Current playable bounds; starts at ARENA and grows with PrototypeArena stages (M5).
+var arena: Rect2 = ARENA
 var left_hand: JunkComponent
 var right_hand: JunkComponent
 var carried_weapon: JugaadWeapon
@@ -137,7 +139,7 @@ func _on_player_hit(direction: Vector2) -> void:
 		var from_workshop: Vector2 = at - workshop.global_position
 		if from_workshop.length() < 72.0:
 			at = workshop.global_position + (from_workshop.normalized() if not from_workshop.is_zero_approx() else direction) * 72.0
-		at = at.clamp(ARENA.position + Vector2(20, 20), ARENA.end - Vector2(20, 20))
+		at = at.clamp(arena.position + Vector2(20, 20), arena.end - Vector2(20, 20))
 		item.reparent(components)
 		item.global_position = at
 		item.set_held(false)
@@ -197,7 +199,7 @@ func placement_position() -> Vector2:
 	return player.global_position + player.facing * 64.0
 
 func can_place(at: Vector2) -> bool:
-	if not ARENA.grow(-28).has_point(at):
+	if not arena.grow(-28).has_point(at):
 		return false
 	if at.distance_to(workshop.global_position) < 78.0:
 		return false

@@ -2,9 +2,12 @@ class_name GundaSpawner
 extends Node2D
 
 const GUNDA: PackedScene = preload("res://enemies/gunda.tscn")
+const DEBUG_ENEMY_GROUP: StringName = &"debug_enemy"
 const DEBUG_VARIANTS: Array[PackedScene] = [preload("res://enemies/chotu.tscn"), preload("res://enemies/pehelwan.tscn")]
 @export_range(0.2, 30.0) var spawn_interval: float = 3.0
 @export_range(1, 30) var maximum_enemies: int = 6
+# M5: WaveDirector owns production spawning; this node keeps only the debug spawns.
+@export var auto_spawn: bool = true
 var workshop: Workshop
 var enemies: Node2D
 var active: bool = true
@@ -12,7 +15,7 @@ var _remaining: float = 1.0
 var _spawn_index: int = 0
 
 func _physics_process(delta: float) -> void:
-	if not active or not is_instance_valid(workshop) or workshop.current_hp == 0:
+	if not auto_spawn or not active or not is_instance_valid(workshop) or workshop.current_hp == 0:
 		return
 	_remaining -= delta
 	if _remaining <= 0.0:
@@ -22,7 +25,11 @@ func _physics_process(delta: float) -> void:
 func debug_spawn_variant(index: int) -> Gunda:
 	if not OS.is_debug_build() or index < 0 or index >= DEBUG_VARIANTS.size():
 		return null
-	return _spawn(DEBUG_VARIANTS[index])
+	var enemy: Gunda = _spawn(DEBUG_VARIANTS[index])
+	if enemy != null:
+		# Tagged so they are never mistaken for wave-owned enemies.
+		enemy.add_to_group(DEBUG_ENEMY_GROUP)
+	return enemy
 
 func _spawn(scene: PackedScene) -> Gunda:
 	if not active or not is_instance_valid(workshop) or workshop.current_hp <= 0 or not is_instance_valid(enemies):
@@ -30,7 +37,8 @@ func _spawn(scene: PackedScene) -> Gunda:
 	var count: int = 0
 	for child in enemies.get_children():
 		var existing: Gunda = child as Gunda
-		if existing != null and existing.current_hp > 0:
+		# The cap limits this spawner's own enemies, not wave-owned ones.
+		if existing != null and existing.current_hp > 0 and not existing.is_in_group(WaveDirector.WAVE_ENEMY_GROUP):
 			count += 1
 	if count >= maximum_enemies:
 		return null

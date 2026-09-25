@@ -8,6 +8,9 @@ const SLOT_ACTIVE = preload("res://assets/ui/hud_slot_active.png")
 @onready var workshop_hp_label: Label = $MarginContainer/TopPanel/WorkshopHealth/Label
 @onready var wave_label: Label = $MarginContainer/TopPanel/WaveInfo/WaveLabel
 @onready var scrap_label: Label = $MarginContainer/TopPanel/WaveInfo/ScrapLabel
+@onready var phase_label: Label = $MarginContainer/TopPanel/WaveInfo/PhaseLabel
+@onready var announcement_label: Label = $Announcement
+var _announcement_tween: Tween
 
 @onready var left_slot: TextureRect = $MarginContainer/BottomPanel/Hands/LeftHand/SlotBackground
 @onready var left_icon: TextureRect = $MarginContainer/BottomPanel/Hands/LeftHand/SlotBackground/ItemIcon
@@ -74,10 +77,31 @@ func update_hand_slot(slot_rect: TextureRect, icon_rect: TextureRect, item_textu
 			icon_rect.texture = null
 			icon_rect.visible = false
 
-## Presentation update for Wave display
-func set_wave(wave_number: int) -> void:
+## Presentation update for Wave display. total_waves <= 0 shows just the number.
+func set_wave(wave_number: int, total_waves: int = 0) -> void:
 	if wave_label:
-		wave_label.text = "WAVE %d" % wave_number
+		wave_label.text = "WAVE %d/%d" % [wave_number, total_waves] if total_waves > 0 else "WAVE %d" % wave_number
+
+## Presentation update for the wave phase line (enemies left, shop, timers). Empty hides it.
+func set_wave_status(text: String) -> void:
+	if phase_label:
+		phase_label.text = text
+		phase_label.visible = not text.is_empty()
+
+## Big centred banner (countdown, expansion, victory). seconds <= 0 keeps it until replaced.
+func show_announcement(text: String, seconds: float = 2.0) -> void:
+	if not announcement_label:
+		return
+	if _announcement_tween != null:
+		_announcement_tween.kill()
+	announcement_label.text = text
+	announcement_label.modulate = Color.WHITE
+	announcement_label.visible = not text.is_empty()
+	if seconds > 0.0 and announcement_label.visible:
+		_announcement_tween = create_tween()
+		_announcement_tween.tween_interval(maxf(0.0, seconds - 0.35))
+		_announcement_tween.tween_property(announcement_label, "modulate:a", 0.0, 0.35)
+		_announcement_tween.tween_callback(announcement_label.hide)
 
 ## Presentation update for Scrap display
 func set_scrap(scrap_amount: int) -> void:
