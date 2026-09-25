@@ -212,7 +212,7 @@ func _waves_and_events() -> void:
 		if index < 4:
 			check(wd.state == WaveDirector.State.WAVE_CLEAR, "wave clear")
 			wd._advance()
-	check(wd.state == WaveDirector.State.VICTORY and main.get_node("HUD").victory_panel.visible, "Wave 5 victory panel unchanged")
+	check(wd.state == WaveDirector.State.PREPARATION and wd.boss_pending and not main.get_node("HUD").victory_panel.visible, "Wave 5 transitions to boss preparation, not victory")
 	check(main.get_node("Arena").stage > 0 and main.get_node("Camera2D").zoom.x < 1.0, "expanded arena and camera")
 
 func _restart_and_defeat() -> void:

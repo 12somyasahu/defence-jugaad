@@ -18,6 +18,9 @@ var is_defeated: bool = false
 @onready var wave_director: WaveDirector = $WaveDirector
 @onready var event_director: EventDirector = $EventDirector
 @onready var upgrades: UpgradeSystem = $UpgradeSystem
+@onready var boss_director: BossDirector = $BossDirector
+@onready var run_stats: RunStats = $RunStats
+@onready var audio: GameAudio = $AudioManager
 const PROMPT_SECONDS: float = 4.0
 var _prompt_message: String = ""
 var _prompt_remaining: float = 0.0
@@ -63,6 +66,9 @@ func _ready() -> void:
 	$PrototypeOverlay/DebugHint.text = "DEBUG: F3 damage | F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer | F8 force next event | F11 +20 Scrap | F12 grant next mod"
 	if not OS.is_debug_build():
 		$PrototypeOverlay/DebugHint.hide()
+	run_stats.setup(self)
+	audio.setup(self)
+	boss_director.setup(self)
 	wave_director.start()
 
 func _process(delta: float) -> void:
@@ -101,8 +107,7 @@ func _on_arena_bounds_changed(bounds: Rect2) -> void:
 	jugaad_loop.arena = bounds
 
 func _on_victory() -> void:
-	hud.show_announcement("AREA DEFENDED\nVICTORY!\nPress R to play again", 0.0)
-	hud.show_victory(wave_director.total_waves(), economy.scrap)
+	hud.show_victory(wave_director.total_waves(), economy.scrap, run_stats.snapshot())
 	_refresh_wave_hud()
 
 func _refresh_wave_hud() -> void:
@@ -128,6 +133,18 @@ func _refresh_wave_hud() -> void:
 		WaveDirector.State.VICTORY:
 			text = "ALL %d WAVES CLEARED" % wave_director.total_waves()
 	var events: String = event_director.status_text()
+	if wave_director.boss_pending:
+		hud.wave_label.text = "FINAL: THEKEDAAR"
+		var route_name: String = boss_director.route.route_name if boss_director.route != null else "?"
+		match wave_director.state:
+			WaveDirector.State.PREPARATION:
+				text = "BOSS PREPARATION / SHOP OPEN\nFROM %s\nNEXT WAVE: %s" % [route_name, clock]
+			WaveDirector.State.COUNTDOWN:
+				text = "THEKEDAAR INCOMING: %d\nFROM %s" % [seconds, route_name]
+			WaveDirector.State.COMBAT:
+				text = "THEKEDAAR / COMBAT"
+			WaveDirector.State.VICTORY:
+				text = "THEKEDAAR DEFEATED"
 	if not events.is_empty() and not text.is_empty():
 		text += "\n" + events
 	hud.set_wave_status(text)
@@ -194,6 +211,7 @@ func _on_destroyed() -> void:
 	if is_defeated:
 		return
 	is_defeated = true
+	run_stats.active = false
 	economy.active = false
 	kabadiwala.stop()
 	wave_director.stop()
@@ -208,7 +226,7 @@ func _on_destroyed() -> void:
 			enemy.velocity = Vector2.ZERO
 	defeat_label.hide()
 	hud.show_announcement("", 0.0)
-	hud.show_defeat(wave_director.current_wave(), economy.scrap)
+	hud.show_defeat(wave_director.current_wave(), economy.scrap, run_stats.snapshot(), wave_director.boss_pending)
 	_refresh_wave_hud()
 	_update_prompt()
 	defeated.emit()

@@ -3,6 +3,7 @@ extends CharacterBody2D
 
 signal health_changed(current: int, maximum: int)
 signal died
+signal attacked
 
 @export_range(1.0, 500.0) var movement_speed: float = 90.0
 @export_range(1, 1000) var maximum_hp: int = 30
@@ -37,6 +38,7 @@ func _physics_process(delta: float) -> void:
 	elif _attack_remaining <= 0.0:
 		_attack_remaining = attack_cooldown
 		workshop.receive_damage(attack_damage)
+		attacked.emit()
 
 func receive_damage(amount: int) -> void:
 	if amount <= 0 or current_hp == 0:

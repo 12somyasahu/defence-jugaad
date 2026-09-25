@@ -162,7 +162,12 @@ func force_jam() -> bool:
 	return true
 
 func _add_instability() -> void:
-	instability = minf(maximum_instability, instability + instability_per_attack())
+	add_instability(instability_per_attack())
+
+func add_instability(amount: float) -> void:
+	if not active or not is_placed or jammed or amount <= 0.0:
+		return
+	instability = minf(maximum_instability, instability + amount)
 	instability_changed.emit(instability, maximum_instability)
 	if instability >= maximum_instability:
 		_jam()

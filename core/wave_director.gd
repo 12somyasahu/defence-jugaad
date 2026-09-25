@@ -12,6 +12,12 @@ signal announcement(text: String, seconds: float)
 signal wave_started(wave: int)
 signal wave_cleared(wave: int)
 signal victory
+signal normal_waves_completed
+signal boss_combat_started
+
+# Final preparation uses the existing shop/countdown lifecycle, without a sixth wave.
+var boss_pending: bool = false
+var boss_combat: bool = false
 
 const ENEMY_SCENES: Dictionary = {
 	"gunda": preload("res://enemies/gunda.tscn"),
@@ -124,7 +130,7 @@ func _process(delta: float) -> void:
 			if second != _shown_second:
 				_shown_second = second
 				if state == State.COUNTDOWN and second > 0:
-					announcement.emit("WAVE %d INCOMING\n%d" % [current_wave(), second], 1.0)
+					announcement.emit(("THEKEDAAR INCOMING\n%d" % second) if boss_pending else ("WAVE %d INCOMING\n%d" % [current_wave(), second]), 1.0)
 				status_changed.emit()
 			if time_left <= 0.0:
 				_advance()
@@ -141,7 +147,13 @@ func _advance() -> void:
 		State.PREPARATION:
 			_enter(State.COUNTDOWN, float(countdown_seconds))
 		State.COUNTDOWN:
-			_begin_combat()
+			if boss_pending:
+				kabadiwala.close_session()
+				boss_combat = true
+				_enter(State.COMBAT, 0.0)
+				boss_combat_started.emit()
+			else:
+				_begin_combat()
 		State.WAVE_CLEAR:
 			wave_index += 1
 			_apply_wave_layout(true)
@@ -214,15 +226,31 @@ func _on_wave_enemy_exiting(id: int) -> void:
 	_check_clear.call_deferred()
 
 func _check_clear() -> void:
-	if not is_inside_tree() or state != State.COMBAT or spawned < scheduled or _event_pending > 0 or not _alive.is_empty():
+	if boss_pending or boss_combat or not is_inside_tree() or state != State.COMBAT or spawned < scheduled or _event_pending > 0 or not _alive.is_empty():
 		return
 	wave_cleared.emit(current_wave())
 	if wave_index >= waves.size() - 1:
-		_enter(State.VICTORY, 0.0)
-		victory.emit()
+		_enter(State.WAVE_CLEAR, 0.0)
+		normal_waves_completed.emit()
 	else:
 		_enter(State.WAVE_CLEAR, wave_clear_seconds)
 		announcement.emit("WAVE %d CLEARED!\nKABADIWALA IS COMING" % current_wave(), wave_clear_seconds)
+
+func begin_boss_preparation(seconds: float) -> void:
+	if boss_pending or state in [State.DEFEAT, State.VICTORY]:
+		return
+	boss_pending = true
+	_queue.clear()
+	_event_pending = 0
+	kabadiwala.restock()
+	kabadiwala.open_session()
+	_enter(State.PREPARATION, seconds)
+
+func finish_boss_combat() -> void:
+	_queue.clear()
+	_event_pending = 0
+	debug_spawning_paused = true
+	_enter(State.VICTORY, 0.0)
 
 func _apply_wave_layout(announce: bool) -> void:
 	var wave: Dictionary = waves[wave_index]
