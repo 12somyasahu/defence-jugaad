@@ -4,9 +4,12 @@ signal availability_changed(available: bool)
 signal offers_changed(offers: Array[int])
 signal purchased(component_type: int, item: JunkComponent, price: int)
 signal feedback(message: String)
+signal price_changed(price: int)
 
 @export_range(1, 100) var component_price: int = 3
 @export var interaction_range: float = 110.0
+# Temporary event price (KABADIWALA SALE); -1 = none. component_price is never mutated.
+var sale_price: int = -1
 var available: bool = false
 var active: bool = true
 # Stable slots: -1 means sold, so buying slot 1 never renumbers the other keys.
@@ -29,6 +32,17 @@ func restock() -> void:
 	var pool: Array[int] = [0, 1, 2, 3, 4, 5]
 	pool.shuffle()
 	offers.assign(pool.slice(0, 3))
+
+func current_price() -> int:
+	return sale_price if sale_price > 0 else component_price
+
+func set_sale_price(price: int) -> void:
+	sale_price = price
+	_update_panel()
+	price_changed.emit(current_price())
+
+func clear_sale_price() -> void:
+	set_sale_price(-1)
 
 func open_session() -> void:
 	if not active or available:
@@ -75,7 +89,8 @@ func buy(slot: int) -> bool:
 	if slot < 0 or slot >= offers.size() or offers[slot] < 0:
 		feedback.emit("That offer is SOLD.")
 		return false
-	if economy.scrap < component_price:
+	var price: int = current_price()
+	if economy.scrap < price:
 		feedback.emit("SCRAP KAM HAI!")
 		return false
 	var drop_position: Vector2 = _pickup_point(slot)
@@ -84,7 +99,7 @@ func buy(slot: int) -> bool:
 		return false
 	var item: JunkComponent = JugaadLoop.COMPONENT.instantiate()
 	item.component_type = offers[slot]
-	if not economy.try_spend(component_price):
+	if not economy.try_spend(price):
 		item.free()
 		return false
 	offers[slot] = -1
@@ -92,7 +107,7 @@ func buy(slot: int) -> bool:
 	item.global_position = drop_position
 	_update_panel()
 	offers_changed.emit(offers.duplicate())
-	purchased.emit(item.component_type, item, component_price)
+	purchased.emit(item.component_type, item, price)
 	feedback.emit("Bought %s! Pick it up beside the stall with E." % item.display_name())
 	return true
 
@@ -119,8 +134,8 @@ func _on_scrap_changed(_total: int) -> void:
 	_update_panel()
 
 func _update_panel() -> void:
-	var text: String = "KABADIWALA  |  SCRAP: %d\n" % economy.scrap
+	var text: String = "KABADIWALA%s  |  SCRAP: %d\n" % [" SALE!" if sale_price > 0 else "", economy.scrap]
 	for i in offers.size():
-		text += "[%d] %s\n" % [i + 1, "SOLD" if offers[i] < 0 else "%s - %d Scrap" % [JunkComponent.DISPLAY_NAMES[offers[i]], component_price]]
+		text += "[%d] %s\n" % [i + 1, "SOLD" if offers[i] < 0 else "%s - %d Scrap" % [JunkComponent.DISPLAY_NAMES[offers[i]], current_price()]]
 	text += "Buy: 1 / 2 / 3 (hand drops disabled here)\nE: pick up purchased junk | Closes when the wave starts"
 	$ShopPanel/Panel/Offers.text = text

@@ -7,6 +7,8 @@ extends Node2D
 @export_range(10.0, 200.0) var edge_inset: float = 40.0
 @export_range(0.0, 300.0) var lane_spread: float = 90.0
 var active: bool = false
+# Temporary event state (RASTA BAND); independent of wave progression's `active`.
+var blocked: bool = false
 var _lane: int = 0
 
 func _ready() -> void:
@@ -33,6 +35,11 @@ func set_active(value: bool) -> void:
 		modulate = Color(1.6, 1.6, 1.6)
 		create_tween().tween_property(self, "modulate", Color.WHITE, 1.2)
 
+func set_blocked(value: bool) -> void:
+	blocked = value
+	$Label.text = ("RASTA BAND: " if blocked else "GUNDAS FROM ") + route_name
+	queue_redraw()
+
 func next_spawn_position() -> Vector2:
 	# Three deterministic lanes along the edge, like the M1 east spawner.
 	var lateral: Vector2 = direction.orthogonal()
@@ -44,6 +51,12 @@ func _draw() -> void:
 	var inward: Vector2 = -direction
 	var side: Vector2 = direction.orthogonal() * 16.0
 	var tip: Vector2 = inward * 30.0
-	draw_colored_polygon(PackedVector2Array([tip, -side, side]), Color(0.95, 0.25, 0.25, 0.85))
-	draw_line(Vector2.ZERO, direction.orthogonal() * lane_spread, Color(0.95, 0.25, 0.25, 0.35), 3.0)
-	draw_line(Vector2.ZERO, -direction.orthogonal() * lane_spread, Color(0.95, 0.25, 0.25, 0.35), 3.0)
+	var color: Color = Color(0.6, 0.6, 0.6) if blocked else Color(0.95, 0.25, 0.25)
+	draw_colored_polygon(PackedVector2Array([tip, -side, side]), Color(color, 0.85))
+	draw_line(Vector2.ZERO, direction.orthogonal() * lane_spread, Color(color, 0.35), 3.0)
+	draw_line(Vector2.ZERO, -direction.orthogonal() * lane_spread, Color(color, 0.35), 3.0)
+	if blocked:
+		# Barricade across the lane.
+		var across: Vector2 = direction.orthogonal() * lane_spread
+		draw_line(inward * 12.0 - across, inward * 12.0 + across, Color.ORANGE, 8.0)
+		draw_line(inward * 12.0 - across * 0.3 + side, inward * 12.0 + across * 0.3 - side, Color.ORANGE, 4.0)

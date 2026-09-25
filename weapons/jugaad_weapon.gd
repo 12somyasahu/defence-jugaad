@@ -8,6 +8,7 @@ signal jammed_changed(value: bool)
 signal repair_hit(progress: int, required: int)
 signal repaired
 signal picked_up
+signal power_changed(powered: bool)
 
 enum Kind { CHAKRI_GUN, DHAMAAL_BOX, PRESSURE_HORN, BIJLI_CHAKRI, TURBO_PANKHA, JHATKA_SLING, PRESSURE_CHAKRA, COOKER_CANNON, AANDHI_DJ }
 const NAMES: Array[String] = ["Chakri Gun", "Dhamaal Box", "Pressure Horn", "Bijli Chakri", "Turbo Pankha", "Jhatka Sling", "Pressure Chakra", "Cooker Cannon", "Aandhi DJ"]
@@ -37,6 +38,8 @@ var jammed: bool = false
 var repair_progress: int = 0
 var active: bool = true
 var is_placed: bool = false
+# Temporary event state (BIJLI CHALI GAYI). Separate from jam/instability; never repairs anything.
+var power_cut: bool = false
 var facing: Vector2 = Vector2.RIGHT
 var enemies: Node2D
 var projectiles: Node2D
@@ -93,25 +96,54 @@ func repair() -> bool:
 	_update_maintenance()
 	return true
 
+func set_power_cut(value: bool) -> void:
+	if power_cut == value:
+		return
+	power_cut = value
+	var tint: Color = Color(0.45, 0.45, 0.6) if power_cut else Color.WHITE
+	# self_modulate covers the drawn fallback body; labels stay readable.
+	self_modulate = tint
+	$Sprite.modulate = tint
+	$Parts.modulate = tint
+	power_changed.emit(not power_cut)
+	_update_maintenance()
+
+# Event breakdown: enters the normal jam state, repaired with the normal E x3.
+func force_jam() -> bool:
+	if jammed or not active or not is_placed:
+		return false
+	instability = maximum_instability
+	instability_changed.emit(instability, maximum_instability)
+	_jam()
+	_update_maintenance()
+	return true
+
 func _add_instability() -> void:
 	instability = minf(maximum_instability, instability + INSTABILITY_PER_ATTACK[kind])
 	instability_changed.emit(instability, maximum_instability)
 	if instability >= maximum_instability:
-		jammed = true
-		_flash = 0.0
-		jammed_changed.emit(true)
+		_jam()
 	_update_maintenance()
+
+func _jam() -> void:
+	jammed = true
+	_flash = 0.0
+	jammed_changed.emit(true)
 
 func _update_maintenance() -> void:
 	var ratio: float = instability / maximum_instability
 	var warning: String = "STABLE" if ratio < 0.5 else ("UNSTABLE" if ratio < 0.8 else "WARNING")
 	$Maintenance.text = "KHATAK! JAMMED\nE: THAK %d/%d" % [repair_progress, repair_hits_required] if jammed else "%s %d%%" % [warning, roundi(ratio * 100)]
 	$Maintenance.modulate = Color.TOMATO if jammed or ratio >= 0.8 else (Color.GOLD if ratio >= 0.5 else Color.LIGHT_GREEN)
+	if power_cut:
+		$Maintenance.text += "\nBIJLI GAYI! OFFLINE"
+		if not jammed:
+			$Maintenance.modulate = Color.LIGHT_STEEL_BLUE
 
 func _physics_process(delta: float) -> void:
 	_flash = maxf(0, _flash - delta)
 	queue_redraw()
-	if not active or jammed or not is_placed or not is_instance_valid(enemies):
+	if not active or jammed or power_cut or not is_placed or not is_instance_valid(enemies):
 		return
 	_remaining = maxf(0, _remaining - delta)
 	if _remaining > 0:

@@ -37,8 +37,8 @@ func _spawn(scene: PackedScene) -> Gunda:
 	var count: int = 0
 	for child in enemies.get_children():
 		var existing: Gunda = child as Gunda
-		# The cap limits this spawner's own enemies, not wave-owned ones.
-		if existing != null and existing.current_hp > 0 and not existing.is_in_group(WaveDirector.WAVE_ENEMY_GROUP):
+		# The cap limits this spawner's own enemies, not wave- or event-owned ones.
+		if existing != null and existing.current_hp > 0 and existing.is_in_group(DEBUG_ENEMY_GROUP):
 			count += 1
 	if count >= maximum_enemies:
 		return null

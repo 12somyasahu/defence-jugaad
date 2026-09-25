@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://core/kabadiwala.tscn" id="9"]
 [ext_resource type="Script" path="res://core/wave_director.gd" id="10"]
 [ext_resource type="PackedScene" path="res://core/attack_route.tscn" id="11"]
+[ext_resource type="Script" path="res://core/event_director.gd" id="12"]
 
 [node name="Main" type="Node2D" unique_id=943374884]
 script = ExtResource("1")
@@ -94,3 +95,6 @@ position = Vector2(330, 160)
 
 [node name="WaveDirector" type="Node" parent="."]
 script = ExtResource("10")
+
+[node name="EventDirector" type="Node" parent="."]
+script = ExtResource("12")

@@ -19,6 +19,8 @@ const ENEMY_SCENES: Dictionary = {
 	"pehelwan": preload("res://enemies/pehelwan.tscn"),
 }
 const WAVE_ENEMY_GROUP: StringName = &"wave_enemy"
+# Extra enemies added by EventDirector (e.g. GUNDA RUSH). The wave waits for them too.
+const EVENT_ENEMY_GROUP: StringName = &"event_enemy"
 
 @export_range(1.0, 120.0) var first_preparation_seconds: float = 20.0
 @export_range(1.0, 120.0) var preparation_seconds: float = 25.0
@@ -38,8 +40,11 @@ var workshop: Workshop
 var enemies: Node2D
 var kabadiwala: Node
 var arena: PrototypeArena
+var event_spawned: int = 0
 var _queue: Array[PackedScene] = []
+# Every enemy the current wave waits for (WAVE and EVENT owned), keyed by instance id.
 var _alive: Dictionary = {}
+var _event_pending: int = 0
 var _spawn_remaining: float = 0.0
 var _route_cursor: int = 0
 var _shown_second: int = -1
@@ -73,10 +78,39 @@ func current_wave() -> int:
 	return wave_index + 1
 
 func enemies_remaining() -> int:
-	return scheduled - spawned + _alive.size()
+	return scheduled - spawned + _alive.size() + _event_pending
 
 func alive_wave_enemies() -> int:
 	return _alive.size()
+
+# Routes scheduled/event spawns may use right now: active and not blocked by an event.
+func usable_routes() -> Array[AttackRoute]:
+	var usable: Array[AttackRoute] = []
+	for route in _active_routes():
+		if not route.blocked:
+			usable.append(route)
+	return usable
+
+# EventDirector announces extra spawns up front so the wave cannot clear between them.
+func reserve_event_spawns(count: int) -> void:
+	if state == State.COMBAT:
+		_event_pending += maxi(0, count)
+		status_changed.emit()
+
+func cancel_event_spawns() -> void:
+	_event_pending = 0
+	status_changed.emit()
+	_check_clear.call_deferred()
+
+# Spawns one event-owned enemy for the current wave; consumes one reservation.
+func spawn_event_enemy(scene: PackedScene, route: AttackRoute) -> Gunda:
+	_event_pending = maxi(0, _event_pending - 1)
+	if state != State.COMBAT or route == null:
+		status_changed.emit()
+		_check_clear.call_deferred()
+		return null
+	event_spawned += 1
+	return _spawn_tracked(scene, route, EVENT_ENEMY_GROUP)
 
 func debug_skip_phase() -> void:
 	if state in [State.PREPARATION, State.COUNTDOWN, State.WAVE_CLEAR]:
@@ -135,6 +169,8 @@ func _begin_combat() -> void:
 	_queue.shuffle()
 	scheduled = _queue.size()
 	spawned = 0
+	event_spawned = 0
+	_event_pending = 0
 	_alive.clear()
 	_spawn_remaining = first_spawn_delay
 	_enter(State.COMBAT, 0.0)
@@ -143,22 +179,32 @@ func _begin_combat() -> void:
 	_check_clear()
 
 func _spawn_next() -> void:
-	var active: Array[AttackRoute] = _active_routes()
-	if active.is_empty() or not is_instance_valid(enemies) or not is_instance_valid(workshop):
+	# Blocked routes are skipped, so their share is redistributed rather than lost.
+	var usable: Array[AttackRoute] = usable_routes()
+	if usable.is_empty():
+		usable = _active_routes()
+	if usable.is_empty() or not is_instance_valid(enemies) or not is_instance_valid(workshop):
 		return
-	var route: AttackRoute = active[_route_cursor % active.size()]
+	var route: AttackRoute = usable[_route_cursor % usable.size()]
 	_route_cursor += 1
-	var enemy: Gunda = _queue.pop_front().instantiate()
+	_spawn_tracked(_queue.pop_front(), route, WAVE_ENEMY_GROUP)
+	spawned += 1
+	status_changed.emit()
+
+func _spawn_tracked(scene: PackedScene, route: AttackRoute, group: StringName) -> Gunda:
+	if not is_instance_valid(enemies) or not is_instance_valid(workshop):
+		return null
+	var enemy: Gunda = scene.instantiate()
 	enemy.workshop = workshop
-	enemy.add_to_group(WAVE_ENEMY_GROUP)
+	enemy.add_to_group(group)
 	var id: int = enemy.get_instance_id()
 	_alive[id] = enemy
 	# Any exit counts as gone (death or despawn); only ScrapEconomy decides payment, via `died`.
 	enemy.tree_exiting.connect(_on_wave_enemy_exiting.bind(id), CONNECT_ONE_SHOT)
 	enemies.add_child(enemy)
 	enemy.global_position = route.next_spawn_position()
-	spawned += 1
 	status_changed.emit()
+	return enemy
 
 func _on_wave_enemy_exiting(id: int) -> void:
 	if not _alive.erase(id):
@@ -168,7 +214,7 @@ func _on_wave_enemy_exiting(id: int) -> void:
 	_check_clear.call_deferred()
 
 func _check_clear() -> void:
-	if not is_inside_tree() or state != State.COMBAT or spawned < scheduled or not _alive.is_empty():
+	if not is_inside_tree() or state != State.COMBAT or spawned < scheduled or _event_pending > 0 or not _alive.is_empty():
 		return
 	wave_cleared.emit(current_wave())
 	if wave_index >= waves.size() - 1:

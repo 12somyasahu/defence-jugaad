@@ -16,6 +16,7 @@ var is_defeated: bool = false
 @onready var arena: PrototypeArena = $Arena
 @onready var camera: Camera2D = $Camera2D
 @onready var wave_director: WaveDirector = $WaveDirector
+@onready var event_director: EventDirector = $EventDirector
 const PROMPT_SECONDS: float = 4.0
 var _prompt_message: String = ""
 var _prompt_remaining: float = 0.0
@@ -48,10 +49,13 @@ func _ready() -> void:
 	wave_director.status_changed.connect(_refresh_wave_hud)
 	wave_director.announcement.connect(hud.show_announcement)
 	wave_director.victory.connect(_on_victory)
+	event_director.setup(wave_director, kabadiwala, jugaad_loop)
+	event_director.status_changed.connect(_refresh_wave_hud)
+	event_director.announcement.connect(hud.show_announcement)
 	workshop.health_changed.connect(_on_health_changed)
 	workshop.destroyed.connect(_on_destroyed)
 	_on_health_changed(workshop.current_hp, workshop.maximum_hp)
-	$PrototypeOverlay/DebugHint.text = "DEBUG: F3 damage | F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer"
+	$PrototypeOverlay/DebugHint.text = "DEBUG: F3 damage | F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer | F8 force next event"
 	if not OS.is_debug_build():
 		$PrototypeOverlay/DebugHint.hide()
 	wave_director.start()
@@ -116,6 +120,9 @@ func _refresh_wave_hud() -> void:
 			text = "WAVE %d CLEARED" % wave
 		WaveDirector.State.VICTORY:
 			text = "ALL %d WAVES CLEARED" % wave_director.total_waves()
+	var events: String = event_director.status_text()
+	if not events.is_empty() and not text.is_empty():
+		text += "\n" + events
 	hud.set_wave_status(text)
 
 func _on_hands_changed(left: JunkComponent, right: JunkComponent) -> void:
@@ -149,6 +156,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			debug_toggle_shop()
 		elif event.physical_keycode == KEY_F7:
 			wave_director.debug_skip_phase()
+		elif event.physical_keycode == KEY_F8:
+			var forced: String = event_director.debug_force_next()
+			_on_feedback("DEBUG EVENT: " + forced if not forced.is_empty() else "DEBUG: no event eligible right now.")
 		elif event.physical_keycode in [KEY_F4, KEY_F5]:
 			var enemy: Gunda = spawner.debug_spawn_variant(0 if event.physical_keycode == KEY_F4 else 1)
 			_on_feedback("DEBUG: spawned " + enemy.name if enemy != null else "DEBUG: spawning paused or enemy cap reached.")
