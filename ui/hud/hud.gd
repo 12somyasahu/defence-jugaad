@@ -27,14 +27,28 @@ func update_workshop_hp(current_hp: float, max_hp: float = 100.0) -> void:
 	if health_bar:
 		health_bar.max_value = max_hp
 		health_bar.value = current_hp
+	if workshop_hp_label:
+		workshop_hp_label.text = "WORKSHOP HP  %d / %d" % [current_hp, max_hp]
 
-## Presentation update for Left Hand slot
-func set_left_hand_item(item_texture: Texture2D = null) -> void:
+## Presentation update for Left Hand slot. item_name is optional caption text.
+func set_left_hand_item(item_texture: Texture2D = null, item_name: String = "") -> void:
 	update_hand_slot(left_slot, left_icon, item_texture)
+	_set_hand_caption(left_slot, "LEFT [1]", item_name)
 
-## Presentation update for Right Hand slot
-func set_right_hand_item(item_texture: Texture2D = null) -> void:
+## Presentation update for Right Hand slot. item_name is optional caption text.
+func set_right_hand_item(item_texture: Texture2D = null, item_name: String = "") -> void:
 	update_hand_slot(right_slot, right_icon, item_texture)
+	_set_hand_caption(right_slot, "RIGHT [2]", item_name)
+
+func _set_hand_caption(slot_rect: TextureRect, hand: String, item_name: String) -> void:
+	var caption: Label = slot_rect.get_parent().get_node_or_null("Label") if slot_rect else null
+	if caption:
+		caption.text = hand + ("\n" + item_name if not item_name.is_empty() else "\nempty")
+
+## Hide systems that are not implemented yet (e.g. wave / scrap) instead of showing fake values.
+func set_wave_info_visible(value: bool) -> void:
+	if wave_label:
+		wave_label.get_parent().visible = value
 
 ## Helper to switch slot texture between empty and active
 func update_hand_slot(slot_rect: TextureRect, icon_rect: TextureRect, item_texture: Texture2D) -> void:

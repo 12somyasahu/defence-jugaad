@@ -1,4 +1,6 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/terrain/base_ground_tile_01.png" id="1_ground"]
 
 [sub_resource type="RectangleShape2D" id="Horizontal"]
 size = Vector2(1100, 20)
@@ -7,8 +9,11 @@ size = Vector2(20, 600)
 
 [node name="PrototypeArena" type="Node2D"]
 [node name="Ground" type="Polygon2D" parent="."]
+texture_filter = 1
+texture_repeat = 2
 polygon = PackedVector2Array(-540, -290, 540, -290, 540, 290, -540, 290)
-color = Color(0.12, 0.15, 0.18, 1)
+texture = ExtResource("1_ground")
+color = Color(0.72, 0.72, 0.72, 1)
 [node name="Walls" type="StaticBody2D" parent="."]
 collision_layer = 1
 collision_mask = 0

@@ -4,13 +4,30 @@ extends Node2D
 enum Type { BATTERY, CYCLE_WHEEL, PRESSURE_COOKER, SPEAKER, TABLE_FAN, RUBBER_BAND }
 const DISPLAY_NAMES: Array[String] = ["Battery", "Cycle Wheel", "Pressure Cooker", "Speaker", "Table Fan", "Rubber Band"]
 const COLORS: Array[Color] = [Color.YELLOW, Color.LIGHT_GRAY, Color.CORAL, Color.MEDIUM_PURPLE, Color.LIGHT_SKY_BLUE, Color.LIME_GREEN]
+# Presentation only, indexed by Type. Table Fan has no production PNG yet; its SVG is the fallback.
+const TEXTURES: Array[Texture2D] = [
+	preload("res://assets/components/battery.png"),
+	preload("res://assets/components/cycle_wheel.png"),
+	preload("res://assets/components/pressure_cooker.png"),
+	preload("res://assets/components/speaker.png"),
+	preload("res://assets/components/table_fan.svg"),
+	preload("res://assets/components/rubber_band.png"),
+]
+const SPRITE_SIZE: float = 40.0
 
 @export var component_type: Type = Type.BATTERY
 var held: bool = false
 
 func _ready() -> void:
 	$Name.text = display_name()
+	var sprite: Sprite2D = $Sprite
+	sprite.texture = TEXTURES[component_type]
+	if sprite.texture != null:
+		sprite.scale = Vector2.ONE * SPRITE_SIZE / maxf(sprite.texture.get_width(), sprite.texture.get_height())
 	queue_redraw()
+
+func icon() -> Texture2D:
+	return TEXTURES[component_type]
 
 func display_name() -> String:
 	return DISPLAY_NAMES[component_type]
@@ -20,6 +37,9 @@ func set_held(value: bool) -> void:
 	$Name.visible = not held
 
 func _draw() -> void:
+	# Procedural shapes remain as a fallback if a texture is ever missing.
+	if $Sprite.texture != null:
+		return
 	var color: Color = COLORS[component_type]
 	match component_type:
 		Type.BATTERY:

@@ -15,6 +15,13 @@ const SOURCE_PAIRS: Array = [[1, 5], [0, 3], [2, 3]]
 const COMPONENT: PackedScene = preload("res://components/junk_component.tscn")
 const PROJECTILE = preload("res://weapons/scrap_projectile.gd")
 const INSTABILITY_PER_ATTACK: Array[float] = [2.0, 20.0, 12.5]
+# Presentation only, indexed by Kind. Dhamaal Box has no production PNG yet; its SVG placeholder is kept.
+const TEXTURES: Array[Texture2D] = [
+	preload("res://assets/jugaads/chakri_gun.png"),
+	preload("res://assets/weapons/dhamaal_box.svg"),
+	preload("res://assets/jugaads/pressure_horn.png"),
+]
+const SPRITE_SIZE: float = 60.0
 
 @export var kind: Kind = Kind.CHAKRI_GUN
 @export_range(1.0, 1000.0) var maximum_instability: float = 100.0
@@ -36,6 +43,12 @@ func _ready() -> void:
 	attack_range = [260.0, 140.0, 190.0][kind]
 	attack_cooldown = [0.35, 1.2, 1.5][kind]
 	$Name.text = NAMES[kind]
+	var sprite: Sprite2D = $Sprite
+	sprite.texture = TEXTURES[kind]
+	if sprite.texture != null:
+		sprite.scale = Vector2.ONE * SPRITE_SIZE / maxf(sprite.texture.get_width(), sprite.texture.get_height())
+		# The sprite already shows the combined parts; mini components are the no-texture fallback.
+		$Parts.hide()
 	for i in 2:
 		var part: JunkComponent = COMPONENT.instantiate()
 		part.component_type = SOURCE_PAIRS[kind][i]
@@ -138,8 +151,12 @@ func _physics_process(delta: float) -> void:
 	_add_instability()
 
 func _draw() -> void:
-	draw_rect(Rect2(-25, -20, 50, 40), Color(0.2, 0.24, 0.28))
-	draw_line(Vector2(-18, 12), Vector2(18, -12), Color.WHITE, 2)
+	var sprite: Sprite2D = $Sprite
+	if sprite.texture == null:
+		draw_rect(Rect2(-25, -20, 50, 40), Color(0.2, 0.24, 0.28))
+		draw_line(Vector2(-18, 12), Vector2(18, -12), Color.WHITE, 2)
+	else:
+		sprite.flip_h = facing.x < 0.0
 	if kind != Kind.DHAMAAL_BOX:
 		draw_line(Vector2.ZERO, facing * 38, Color.WHITE, 3)
 	if _flash > 0 and is_placed:

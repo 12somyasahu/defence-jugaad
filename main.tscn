@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://arena/prototype_arena.tscn" id="4"]
 [ext_resource type="Script" uid="uid://ns36ftpvt58y" path="res://core/gunda_spawner.gd" id="5"]
 [ext_resource type="PackedScene" path="res://core/jugaad_loop.tscn" id="6"]
+[ext_resource type="PackedScene" uid="uid://cx6q8rtye2j8h" path="res://ui/hud/hud.tscn" id="7"]
 
 [node name="Main" type="Node2D" unique_id=943374884]
 script = ExtResource("1")
@@ -35,14 +36,26 @@ text = "GUNDAS FROM EAST"
 [node name="PrototypeOverlay" type="CanvasLayer" parent="." unique_id=780971281]
 
 [node name="Status" type="Label" parent="PrototypeOverlay" unique_id=1408572019]
-offset_left = 20.0
-offset_top = 12.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -820.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 43.0
+grow_horizontal = 0
+horizontal_alignment = 2
 
 [node name="DebugHint" type="Label" parent="PrototypeOverlay" unique_id=306613012]
-offset_left = 20.0
-offset_top = 41.0
-offset_right = 679.0
-offset_bottom = 64.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -820.0
+offset_top = 46.0
+offset_right = -20.0
+offset_bottom = 69.0
+grow_horizontal = 0
+horizontal_alignment = 2
 text = "DEBUG ONLY: F3 damages oldest Gunda by 15 (two presses kill). Blue square = player."
 
 [node name="Defeat" type="Label" parent="PrototypeOverlay" unique_id=1436226220]
@@ -52,3 +65,5 @@ offset_top = 200.0
 text = "WORKSHOP DESTROYED
 Defeat - press R to restart"
 horizontal_alignment = 1
+
+[node name="HUD" parent="." instance=ExtResource("7")]
