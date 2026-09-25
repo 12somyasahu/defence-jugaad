@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://core/wave_director.gd" id="10"]
 [ext_resource type="PackedScene" path="res://core/attack_route.tscn" id="11"]
 [ext_resource type="Script" path="res://core/event_director.gd" id="12"]
+[ext_resource type="Script" path="res://core/upgrade_system.gd" id="13"]
 
 [node name="Main" type="Node2D" unique_id=943374884]
 script = ExtResource("1")
@@ -98,3 +99,6 @@ script = ExtResource("10")
 
 [node name="EventDirector" type="Node" parent="."]
 script = ExtResource("12")
+
+[node name="UpgradeSystem" type="Node" parent="."]
+script = ExtResource("13")

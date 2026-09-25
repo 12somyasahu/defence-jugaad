@@ -9,6 +9,7 @@ const SLOT_ACTIVE = preload("res://assets/ui/hud_slot_active.png")
 @onready var wave_label: Label = $MarginContainer/TopPanel/WaveInfo/WaveLabel
 @onready var scrap_label: Label = $MarginContainer/TopPanel/WaveInfo/ScrapLabel
 @onready var phase_label: Label = $MarginContainer/TopPanel/WaveInfo/PhaseLabel
+@onready var mods_label: Label = $MarginContainer/TopPanel/WaveInfo/ModsLabel
 @onready var announcement_label: Label = $Announcement
 var _announcement_tween: Tween
 
@@ -87,6 +88,12 @@ func set_wave_status(text: String) -> void:
 	if phase_label:
 		phase_label.text = text
 		phase_label.visible = not text.is_empty()
+
+## Prototype owned-mod strip ("MODS: A | B"). Empty list hides it.
+func set_owned_mods(mod_names: Array[String]) -> void:
+	if mods_label:
+		mods_label.text = "MODS: " + " | ".join(mod_names)
+		mods_label.visible = not mod_names.is_empty()
 
 ## Big centred banner (countdown, expansion, victory). seconds <= 0 keeps it until replaced.
 func show_announcement(text: String, seconds: float = 2.0) -> void:

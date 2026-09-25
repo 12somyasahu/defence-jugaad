@@ -17,6 +17,7 @@ var is_defeated: bool = false
 @onready var camera: Camera2D = $Camera2D
 @onready var wave_director: WaveDirector = $WaveDirector
 @onready var event_director: EventDirector = $EventDirector
+@onready var upgrades: UpgradeSystem = $UpgradeSystem
 const PROMPT_SECONDS: float = 4.0
 var _prompt_message: String = ""
 var _prompt_remaining: float = 0.0
@@ -36,8 +37,12 @@ func _ready() -> void:
 		_on_enemy_entered(child)
 	jugaad_loop.hands_changed.connect(_on_hands_changed)
 	jugaad_loop.feedback.connect(_on_feedback)
+	jugaad_loop.upgrades = upgrades
 	jugaad_loop.setup(player, workshop, enemies)
-	kabadiwala.setup(economy, jugaad_loop, player)
+	kabadiwala.setup(economy, jugaad_loop, player, upgrades)
+	upgrades.setup(economy, workshop, jugaad_loop, wave_director)
+	upgrades.feedback.connect(_on_feedback)
+	upgrades.mods_changed.connect(_on_mods_changed)
 	kabadiwala.feedback.connect(_on_feedback)
 	kabadiwala.availability_changed.connect(_on_shop_availability_changed)
 	arena.camera = camera
@@ -55,7 +60,7 @@ func _ready() -> void:
 	workshop.health_changed.connect(_on_health_changed)
 	workshop.destroyed.connect(_on_destroyed)
 	_on_health_changed(workshop.current_hp, workshop.maximum_hp)
-	$PrototypeOverlay/DebugHint.text = "DEBUG: F3 damage | F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer | F8 force next event"
+	$PrototypeOverlay/DebugHint.text = "DEBUG: F3 damage | F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer | F8 force next event | F11 +20 Scrap | F12 grant next mod"
 	if not OS.is_debug_build():
 		$PrototypeOverlay/DebugHint.hide()
 	wave_director.start()
@@ -88,6 +93,9 @@ func _on_shop_availability_changed(available: bool) -> void:
 	if not available:
 		wave_director.debug_spawning_paused = false
 	_refresh_wave_hud()
+
+func _on_mods_changed(_owned: Array[StringName]) -> void:
+	hud.set_owned_mods(upgrades.owned_names())
 
 func _on_arena_bounds_changed(bounds: Rect2) -> void:
 	jugaad_loop.arena = bounds
@@ -159,6 +167,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.physical_keycode == KEY_F8:
 			var forced: String = event_director.debug_force_next()
 			_on_feedback("DEBUG EVENT: " + forced if not forced.is_empty() else "DEBUG: no event eligible right now.")
+		elif event.physical_keycode == KEY_F11:
+			economy.debug_grant(20)
+			_on_feedback("DEBUG: +20 Scrap")
+		elif event.physical_keycode == KEY_F12:
+			var granted: StringName = upgrades.debug_grant()
+			_on_feedback("DEBUG MOD: " + UpgradeTable.MODS[granted].name if granted != &"" else "DEBUG: all mods owned.")
 		elif event.physical_keycode in [KEY_F4, KEY_F5]:
 			var enemy: Gunda = spawner.debug_spawn_variant(0 if event.physical_keycode == KEY_F4 else 1)
 			_on_feedback("DEBUG: spawned " + enemy.name if enemy != null else "DEBUG: spawning paused or enemy cap reached.")

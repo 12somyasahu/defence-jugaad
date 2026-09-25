@@ -17,13 +17,18 @@ var offers: Array[int] = []
 var economy: Node
 var jugaad_loop: JugaadLoop
 var player: JugaadPlayer
+# M7A: optional; adds mod slots [4][5][6] and the Workshop patch [7].
+var upgrades: UpgradeSystem
 var _near: bool = false
 
-func setup(currency: Node, loop: JugaadLoop, player_node: JugaadPlayer) -> void:
+func setup(currency: Node, loop: JugaadLoop, player_node: JugaadPlayer, upgrade_system: UpgradeSystem = null) -> void:
 	economy = currency
 	jugaad_loop = loop
 	player = player_node
+	upgrades = upgrade_system
 	economy.scrap_changed.connect(_on_scrap_changed)
+	if upgrades != null:
+		upgrades.shop_state_changed.connect(_update_panel)
 	visible = false
 	$ShopPanel.hide()
 
@@ -82,6 +87,13 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		if not event.echo:
 			buy(event.physical_keycode - KEY_1)
+	elif upgrades != null and event is InputEventKey and event.pressed and event.physical_keycode in [KEY_4, KEY_5, KEY_6, KEY_7]:
+		get_viewport().set_input_as_handled()
+		if not event.echo:
+			if event.physical_keycode == KEY_7:
+				upgrades.buy_patch()
+			else:
+				upgrades.buy_mod(event.physical_keycode - KEY_4)
 
 func buy(slot: int) -> bool:
 	if not active or not available or not is_instance_valid(player) or player.global_position.distance_to(global_position) > interaction_range:
@@ -135,7 +147,28 @@ func _on_scrap_changed(_total: int) -> void:
 
 func _update_panel() -> void:
 	var text: String = "KABADIWALA%s  |  SCRAP: %d\n" % [" SALE!" if sale_price > 0 else "", economy.scrap]
+	if upgrades != null and upgrades.can_shop():
+		text += "COMPONENTS\n"
 	for i in offers.size():
 		text += "[%d] %s\n" % [i + 1, "SOLD" if offers[i] < 0 else "%s - %d Scrap" % [JunkComponent.DISPLAY_NAMES[offers[i]], current_price()]]
-	text += "Buy: 1 / 2 / 3 (hand drops disabled here)\nE: pick up purchased junk | Closes when the wave starts"
+	text += _mods_text()
+	text += "Buy: 1-3 junk, 4-6 mod, 7 patch (no hand drops here)\nE: pick up purchased junk | Closes when the wave starts"
 	$ShopPanel/Panel/Offers.text = text
+
+func _mods_text() -> String:
+	if upgrades == null or not upgrades.can_shop():
+		return ""
+	var text: String = "JUGAAD MODS (one per visit, never on sale)\n"
+	if upgrades.offers.is_empty():
+		text += "  Saare mods le liye!\n"
+	for i in upgrades.offers.size():
+		var mod: Dictionary = UpgradeTable.MODS[upgrades.offers[i]]
+		if upgrades.mod_bought == upgrades.offers[i]:
+			text += "[%d] %s - BOUGHT\n" % [i + 4, mod.name]
+		elif upgrades.mod_bought != &"":
+			text += "[%d] %s - closed\n" % [i + 4, mod.name]
+		else:
+			text += "[%d] %s - %d Scrap\n     %s %s\n" % [i + 4, mod.name, mod.cost, mod.flavour, mod.effect]
+	var patch: String = "used" if upgrades.patch_used else ("Workshop full" if upgrades.workshop.current_hp >= upgrades.workshop.maximum_hp else "%d Scrap: +%d HP" % [UpgradeTable.PATCH_COST, UpgradeTable.PATCH_HEAL])
+	text += "[7] %s - %s\n" % [UpgradeTable.PATCH_NAME, patch]
+	return text

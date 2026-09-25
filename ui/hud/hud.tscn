@@ -70,6 +70,13 @@ theme_override_colors/font_color = Color(0.945098, 0.768627, 0.0588235, 1)
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 2
 
+[node name="ModsLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 2
+
 [node name="BottomPanel" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 size_flags_vertical = 8

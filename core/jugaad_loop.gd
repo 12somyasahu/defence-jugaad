@@ -20,6 +20,8 @@ var carried_weapon: JugaadWeapon
 var player: JugaadPlayer
 var workshop: Workshop
 var enemies: Node2D
+# M7A: handed to every crafted Jugaad so mods apply to existing and future weapons.
+var upgrades: UpgradeSystem
 var active: bool = true
 var _message_remaining: float = 0.0
 @onready var components: Node2D = $Components
@@ -189,6 +191,7 @@ func combine() -> void:
 	carried_weapon.kind = recipe
 	carried_weapon.enemies = enemies
 	carried_weapon.projectiles = projectiles
+	carried_weapon.upgrades = upgrades
 	player.add_child(carried_weapon)
 	carried_weapon.position = Vector2(0, -52)
 	carried_weapon_changed.emit(carried_weapon)
