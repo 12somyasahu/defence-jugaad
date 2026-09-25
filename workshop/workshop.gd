@@ -4,7 +4,7 @@ extends StaticBody2D
 signal health_changed(current: int, maximum: int)
 signal destroyed
 
-@export_range(1, 10000) var maximum_hp: int = 100
+@export_range(1, 10000) var maximum_hp: int = 500
 var current_hp: int = 0
 
 func _ready() -> void:
