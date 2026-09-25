@@ -49,14 +49,25 @@ func next_spawn_position() -> Vector2:
 
 func _draw() -> void:
 	var inward: Vector2 = -direction
-	var side: Vector2 = direction.orthogonal() * 16.0
-	var tip: Vector2 = inward * 30.0
-	var color: Color = Color(0.6, 0.6, 0.6) if blocked else Color(0.95, 0.25, 0.25)
-	draw_colored_polygon(PackedVector2Array([tip, -side, side]), Color(color, 0.85))
-	draw_line(Vector2.ZERO, direction.orthogonal() * lane_spread, Color(color, 0.35), 3.0)
-	draw_line(Vector2.ZERO, -direction.orthogonal() * lane_spread, Color(color, 0.35), 3.0)
+	var side: Vector2 = direction.orthogonal() * 18.0
+	var tip: Vector2 = inward * 34.0
+	var color: Color = Color(0.6, 0.6, 0.6) if blocked else Color(1.0, 0.25, 0.25)
+
+	# Lane boundary threat lines
+	draw_line(Vector2.ZERO, direction.orthogonal() * lane_spread, Color(color, 0.45), 3.0)
+	draw_line(Vector2.ZERO, -direction.orthogonal() * lane_spread, Color(color, 0.45), 3.0)
+
+	# Primary arrow chevron
+	draw_colored_polygon(PackedVector2Array([tip, -side, side]), Color(color, 0.90))
+	draw_polyline(PackedVector2Array([-side, tip, side]), Color(1.0, 0.9, 0.4, 0.9), 2.0)
+
+	# Secondary inward chevron
+	var tip2: Vector2 = tip + inward * 14.0
+	var side2: Vector2 = direction.orthogonal() * 12.0
+	draw_polyline(PackedVector2Array([tip + -side2, tip2, tip + side2]), Color(color, 0.75), 2.5)
+
 	if blocked:
-		# Barricade across the lane.
+		# Barricade across the lane with warning stripes
 		var across: Vector2 = direction.orthogonal() * lane_spread
 		draw_line(inward * 12.0 - across, inward * 12.0 + across, Color.ORANGE, 8.0)
 		draw_line(inward * 12.0 - across * 0.3 + side, inward * 12.0 + across * 0.3 - side, Color.ORANGE, 4.0)

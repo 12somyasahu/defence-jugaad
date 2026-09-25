@@ -101,9 +101,8 @@ func _on_arena_bounds_changed(bounds: Rect2) -> void:
 	jugaad_loop.arena = bounds
 
 func _on_victory() -> void:
-	hud.show_announcement("AREA DEFENDED
-VICTORY!
-Press R to play again", 0.0)
+	hud.show_announcement("AREA DEFENDED\nVICTORY!\nPress R to play again", 0.0)
+	hud.show_victory(wave_director.total_waves(), economy.scrap)
 	_refresh_wave_hud()
 
 func _refresh_wave_hud() -> void:
@@ -207,8 +206,9 @@ func _on_destroyed() -> void:
 		if enemy != null:
 			enemy.active = false
 			enemy.velocity = Vector2.ZERO
-	defeat_label.show()
+	defeat_label.hide()
 	hud.show_announcement("", 0.0)
+	hud.show_defeat(wave_director.current_wave(), economy.scrap)
 	_refresh_wave_hud()
 	_update_prompt()
 	defeated.emit()

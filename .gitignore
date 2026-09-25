@@ -19,4 +19,5 @@ Thumbs.db
 
 # ai generated images
 
-/scratch
+scratch/
+asset_pngs/

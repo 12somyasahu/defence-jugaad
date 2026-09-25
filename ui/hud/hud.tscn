@@ -1,10 +1,42 @@
-[gd_scene load_steps=6 format=3 uid="uid://cx6q8rtye2j8h"]
+[gd_scene load_steps=8 format=3 uid="uid://cx6q8rtye2j8h"]
 
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud_script"]
 [ext_resource type="Texture2D" uid="uid://qscejqcqel53" path="res://assets/ui/workshop_bar_empty.png" id="2_bar_empty"]
 [ext_resource type="Texture2D" uid="uid://cjq6158hm2y51" path="res://assets/ui/workshop_bar_damaged.png" id="3_bar_damaged"]
 [ext_resource type="Texture2D" uid="uid://cf7ldfn67j82k" path="res://assets/ui/hud_slot_empty.png" id="4_slot_empty"]
 [ext_resource type="Texture2D" uid="uid://ckdxbud0avicu" path="res://assets/ui/hud_slot_active.png" id="5_slot_active"]
+
+[sub_resource type="StyleBoxFlat" id="VictoryStyle"]
+bg_color = Color(0.1, 0.08, 0.05, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.95, 0.8, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+expand_margin_left = 16.0
+expand_margin_top = 16.0
+expand_margin_right = 16.0
+expand_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="DefeatStyle"]
+bg_color = Color(0.12, 0.04, 0.04, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.9, 0.25, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+expand_margin_left = 16.0
+expand_margin_top = 16.0
+expand_margin_right = 16.0
+expand_margin_bottom = 16.0
 
 [node name="HUD" type="CanvasLayer"]
 texture_filter = 1
@@ -32,6 +64,8 @@ size_flags_horizontal = 3
 [node name="Label" type="Label" parent="MarginContainer/TopPanel/WorkshopHealth"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.945098, 0.768627, 0.0588235, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.05, 1)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 24
 text = "WORKSHOP HP"
 
@@ -47,12 +81,15 @@ stretch_margin_right = 16
 stretch_margin_bottom = 8
 texture_under = ExtResource("2_bar_empty")
 texture_progress = ExtResource("3_bar_damaged")
+tint_progress = Color(0.3, 0.85, 0.3, 1)
 
 [node name="WaveInfo" type="VBoxContainer" parent="MarginContainer/TopPanel"]
 layout_mode = 2
 
 [node name="WaveLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 32
 text = "WAVE 1"
 horizontal_alignment = 2
@@ -60,20 +97,29 @@ horizontal_alignment = 2
 [node name="ScrapLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.533333, 0.827451, 0.192157, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 20
 text = "SCRAP: 0"
 horizontal_alignment = 2
 
 [node name="PhaseLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.945098, 0.768627, 0.0588235, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 2
 
 [node name="ModsLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
 visible = false
+custom_minimum_size = Vector2(440, 0)
 layout_mode = 2
+autowrap_mode = 3
 theme_override_colors/font_color = Color(0.55, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 14
 horizontal_alignment = 2
 
@@ -92,6 +138,8 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="MarginContainer/BottomPanel/Hands/LeftHand"]
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
 text = "LEFT HAND"
 horizontal_alignment = 1
 
@@ -122,6 +170,8 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="MarginContainer/BottomPanel/Hands/RightHand"]
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
 text = "RIGHT HAND"
 horizontal_alignment = 1
 
@@ -150,22 +200,137 @@ stretch_mode = 5
 [node name="PromptLabel" type="Label" parent="MarginContainer/BottomPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.905882, 0.298039, 0.235294, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 20
 text = "[ E - PICK UP ]"
 horizontal_alignment = 1
 
+[node name="AnnouncementBand" type="ColorRect" parent="."]
+visible = false
+anchors_preset = -1
+anchor_top = 0.22
+anchor_right = 1.0
+anchor_bottom = 0.40
+offset_top = -10.0
+offset_bottom = 10.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.08, 0.06, 0.05, 0.82)
+
 [node name="Announcement" type="Label" parent="."]
 visible = false
 anchors_preset = -1
-anchor_top = 0.24
+anchor_top = 0.22
 anchor_right = 1.0
-anchor_bottom = 0.24
-offset_bottom = 170.0
+anchor_bottom = 0.40
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.86, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.05, 0.02, 1)
 theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 42
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="EndGameOverlay" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.04, 0.03, 0.03, 0.88)
+
+[node name="VictoryPanel" type="PanelContainer" parent="EndGameOverlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -130.0
+offset_right = 260.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("VictoryStyle")
+
+[node name="VBox" type="VBoxContainer" parent="EndGameOverlay/VictoryPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Title" type="Label" parent="EndGameOverlay/VictoryPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.25, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.05, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 36
+text = "AREA DEFENDED!
+VICTORY!"
+horizontal_alignment = 1
+
+[node name="Stats" type="Label" parent="EndGameOverlay/VictoryPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "All 5 Waves Defended Successfully!"
+horizontal_alignment = 1
+
+[node name="RestartPrompt" type="Label" parent="EndGameOverlay/VictoryPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "Press [R] to Play Again"
+horizontal_alignment = 1
+
+[node name="DefeatPanel" type="PanelContainer" parent="EndGameOverlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -130.0
+offset_right = 260.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("DefeatStyle")
+
+[node name="VBox" type="VBoxContainer" parent="EndGameOverlay/DefeatPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Title" type="Label" parent="EndGameOverlay/DefeatPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.25, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 36
+text = "WORKSHOP DESTROYED
+DEFEAT"
+horizontal_alignment = 1
+
+[node name="Stats" type="Label" parent="EndGameOverlay/DefeatPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "The Gundas broke through."
+horizontal_alignment = 1
+
+[node name="RestartPrompt" type="Label" parent="EndGameOverlay/DefeatPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "Press [R] to Rebuild and Restart"
+horizontal_alignment = 1

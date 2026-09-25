@@ -146,14 +146,31 @@ func _on_scrap_changed(_total: int) -> void:
 	_update_panel()
 
 func _update_panel() -> void:
-	var text: String = "KABADIWALA%s  |  SCRAP: %d\n" % [" SALE!" if sale_price > 0 else "", economy.scrap]
-	if upgrades != null and upgrades.can_shop():
-		text += "COMPONENTS\n"
-	for i in offers.size():
-		text += "[%d] %s\n" % [i + 1, "SOLD" if offers[i] < 0 else "%s - %d Scrap" % [JunkComponent.DISPLAY_NAMES[offers[i]], current_price()]]
-	text += _mods_text()
-	text += "Buy: 1-3 junk, 4-6 mod, 7 patch (no hand drops here)\nE: pick up purchased junk | Closes when the wave starts"
-	$ShopPanel/Panel/Offers.text = text
+	var price: int = current_price()
+	$ShopPanel/Panel/Header.text = "KABADIWALA%s  |  SCRAP: %d\nCOMPONENTS" % [" SALE!" if sale_price > 0 else "", economy.scrap]
+	$ShopPanel/Panel/Offers.text = _mods_text() + "\nBuy: 1-3 junk, 4-6 mod, 7 patch\nE: pick up purchased junk | Closes when the wave starts"
+
+	var slot_container: Node = $ShopPanel/Panel.get_node_or_null("SlotContainer")
+	if slot_container:
+		for i in 3:
+			var slot_node: Control = slot_container.get_node_or_null("Slot%d" % i) as Control
+			if slot_node and i < offers.size():
+				var icon_rect: TextureRect = slot_node.get_node_or_null("Icon") as TextureRect
+				var tag_label: Label = slot_node.get_node_or_null("Tag") as Label
+				if offers[i] >= 0:
+					var can_afford: bool = economy.scrap >= price
+					if icon_rect:
+						icon_rect.texture = JunkComponent.TEXTURES[offers[i]]
+						icon_rect.modulate = Color.WHITE if can_afford else Color(0.6, 0.6, 0.6, 0.6)
+					if tag_label:
+						tag_label.text = "[%d] %s\n%d Scrap" % [i + 1, JunkComponent.DISPLAY_NAMES[offers[i]], price]
+						tag_label.modulate = Color(0.4, 0.9, 0.4) if can_afford else Color(1.0, 0.4, 0.4)
+				else:
+					if icon_rect:
+						icon_rect.texture = null
+					if tag_label:
+						tag_label.text = "[%d]\nSOLD" % (i + 1)
+						tag_label.modulate = Color(0.5, 0.5, 0.5)
 
 func _mods_text() -> String:
 	if upgrades == null or not upgrades.can_shop():
@@ -170,5 +187,5 @@ func _mods_text() -> String:
 		else:
 			text += "[%d] %s - %d Scrap\n     %s %s\n" % [i + 4, mod.name, mod.cost, mod.flavour, mod.effect]
 	var patch: String = "used" if upgrades.patch_used else ("Workshop full" if upgrades.workshop.current_hp >= upgrades.workshop.maximum_hp else "%d Scrap: +%d HP" % [UpgradeTable.PATCH_COST, UpgradeTable.PATCH_HEAL])
-	text += "[7] %s - %s\n" % [UpgradeTable.PATCH_NAME, patch]
+	text += "\nWORKSHOP\n[7] %s - %d Scrap | %s\n" % [UpgradeTable.PATCH_NAME, UpgradeTable.PATCH_COST, patch]
 	return text
