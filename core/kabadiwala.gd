@@ -134,8 +134,31 @@ func _on_scrap_changed(_total: int) -> void:
 	_update_panel()
 
 func _update_panel() -> void:
+	var price: int = current_price()
 	var text: String = "KABADIWALA%s  |  SCRAP: %d\n" % [" SALE!" if sale_price > 0 else "", economy.scrap]
 	for i in offers.size():
-		text += "[%d] %s\n" % [i + 1, "SOLD" if offers[i] < 0 else "%s - %d Scrap" % [JunkComponent.DISPLAY_NAMES[offers[i]], current_price()]]
+		text += "[%d] %s\n" % [i + 1, "SOLD" if offers[i] < 0 else "%s - %d Scrap" % [JunkComponent.DISPLAY_NAMES[offers[i]], price]]
 	text += "Buy: 1 / 2 / 3 (hand drops disabled here)\nE: pick up purchased junk | Closes when the wave starts"
 	$ShopPanel/Panel/Offers.text = text
+
+	var slot_container: Node = $ShopPanel/Panel.get_node_or_null("SlotContainer")
+	if slot_container:
+		for i in 3:
+			var slot_node: Control = slot_container.get_node_or_null("Slot%d" % i) as Control
+			if slot_node and i < offers.size():
+				var icon_rect: TextureRect = slot_node.get_node_or_null("Icon") as TextureRect
+				var tag_label: Label = slot_node.get_node_or_null("Tag") as Label
+				if offers[i] >= 0:
+					var can_afford: bool = economy.scrap >= price
+					if icon_rect:
+						icon_rect.texture = JunkComponent.TEXTURES[offers[i]]
+						icon_rect.modulate = Color.WHITE if can_afford else Color(0.6, 0.6, 0.6, 0.6)
+					if tag_label:
+						tag_label.text = "[%d] %s\n%d Scrap" % [i + 1, JunkComponent.DISPLAY_NAMES[offers[i]], price]
+						tag_label.modulate = Color(0.4, 0.9, 0.4) if can_afford else Color(1.0, 0.4, 0.4)
+				else:
+					if icon_rect:
+						icon_rect.texture = null
+					if tag_label:
+						tag_label.text = "[%d]\nSOLD" % (i + 1)
+						tag_label.modulate = Color(0.5, 0.5, 0.5)
