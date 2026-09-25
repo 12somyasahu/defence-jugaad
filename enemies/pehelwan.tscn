@@ -7,6 +7,7 @@ maximum_hp = 150
 attack_damage = 10
 attack_cooldown = 1.4
 knockback_multiplier = 0.45
+scrap_reward = 5
 
 [node name="Placeholder" parent="." index="1"]
 polygon = PackedVector2Array(-18, -17, 12, -17, 20, 0, 12, 17, -18, 17)

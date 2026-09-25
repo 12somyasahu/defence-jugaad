@@ -45,10 +45,19 @@ func _set_hand_caption(slot_rect: TextureRect, hand: String, item_name: String) 
 	if caption:
 		caption.text = hand + ("\n" + item_name if not item_name.is_empty() else "\nempty")
 
-## Hide systems that are not implemented yet (e.g. wave / scrap) instead of showing fake values.
+## Wave and Scrap visibility are independent: economy can exist before waves.
 func set_wave_info_visible(value: bool) -> void:
 	if wave_label:
-		wave_label.get_parent().visible = value
+		wave_label.visible = value
+		_update_info_visibility()
+
+func set_scrap_visible(value: bool) -> void:
+	if scrap_label:
+		scrap_label.visible = value
+		_update_info_visibility()
+
+func _update_info_visibility() -> void:
+	wave_label.get_parent().visible = wave_label.visible or scrap_label.visible
 
 ## Helper to switch slot texture between empty and active
 func update_hand_slot(slot_rect: TextureRect, icon_rect: TextureRect, item_texture: Texture2D) -> void:

@@ -10,6 +10,7 @@ signal died
 @export_range(0.1, 10.0) var attack_cooldown: float = 1.0
 @export_range(63.0, 100.0) var attack_distance: float = 66.0
 @export_range(0.0, 1.0) var knockback_multiplier: float = 1.0
+@export_range(0, 100) var scrap_reward: int = 2
 var current_hp: int = 0
 var workshop: Workshop
 var active: bool = true
