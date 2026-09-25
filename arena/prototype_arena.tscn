@@ -1,6 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/terrain/base_ground_tile_01.png" id="1_ground"]
+[ext_resource type="Shader" path="res://arena/ground_tile.gdshader" id="2_ground_shader"]
+
+[sub_resource type="ShaderMaterial" id="GroundMaterial"]
+shader = ExtResource("2_ground_shader")
 
 [sub_resource type="RectangleShape2D" id="Horizontal"]
 size = Vector2(1100, 20)
@@ -9,6 +13,7 @@ size = Vector2(20, 600)
 
 [node name="PrototypeArena" type="Node2D"]
 [node name="Ground" type="Polygon2D" parent="."]
+material = SubResource("GroundMaterial")
 texture_filter = 1
 texture_repeat = 2
 polygon = PackedVector2Array(-540, -290, 540, -290, 540, 290, -540, 290)
