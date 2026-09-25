@@ -5,6 +5,8 @@ var direction: Vector2 = Vector2.RIGHT
 var damage: int = 10
 var speed: float = 520.0
 var remaining_distance: float = 300.0
+var projectile_color: Color = Color.LIME_GREEN
+var projectile_size: Vector2 = Vector2(10, 6)
 
 func _physics_process(delta: float) -> void:
 	var travel: float = minf(speed * delta, remaining_distance)
@@ -25,4 +27,4 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 func _draw() -> void:
-	draw_rect(Rect2(-5, -3, 10, 6), Color.LIME_GREEN)
+	draw_rect(Rect2(-projectile_size * 0.5, projectile_size), projectile_color)

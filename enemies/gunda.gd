@@ -9,6 +9,7 @@ signal died
 @export_range(1, 100) var attack_damage: int = 5
 @export_range(0.1, 10.0) var attack_cooldown: float = 1.0
 @export_range(63.0, 100.0) var attack_distance: float = 66.0
+@export_range(0.0, 1.0) var knockback_multiplier: float = 1.0
 var current_hp: int = 0
 var workshop: Workshop
 var active: bool = true
@@ -48,4 +49,4 @@ func receive_damage(amount: int) -> void:
 
 func apply_knockback(impulse: Vector2) -> void:
 	if active and current_hp > 0:
-		_knockback = impulse.limit_length(300.0)
+		_knockback = impulse.limit_length(300.0) * knockback_multiplier

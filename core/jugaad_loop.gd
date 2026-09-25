@@ -177,7 +177,7 @@ func combine() -> void:
 		return
 	var recipe: int = JugaadRecipes.resolve(left_hand.component_type, right_hand.component_type)
 	if recipe < 0:
-		_show_feedback("Recipe not implemented in M2. Both components kept.")
+		_show_feedback("Recipe not implemented yet. Both components kept.")
 		return
 	left_hand.queue_free()
 	right_hand.queue_free()

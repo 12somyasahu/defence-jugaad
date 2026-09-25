@@ -27,6 +27,7 @@ func _ready() -> void:
 	workshop.health_changed.connect(_on_health_changed)
 	workshop.destroyed.connect(_on_destroyed)
 	_on_health_changed(workshop.current_hp, workshop.maximum_hp)
+	$PrototypeOverlay/DebugHint.text = "DEBUG ONLY: F3 damage enemy | F4 spawn Chotu | F5 spawn Pehelwan (cap 6)"
 	if not OS.is_debug_build():
 		$PrototypeOverlay/DebugHint.hide()
 
@@ -60,6 +61,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_tree().reload_current_scene()
 	elif OS.is_debug_build() and event.is_action_pressed("debug_damage_gunda") and not event.is_echo():
 		debug_damage_gunda()
+	elif OS.is_debug_build() and not is_defeated and event is InputEventKey and event.pressed and not event.echo:
+		if event.physical_keycode in [KEY_F4, KEY_F5]:
+			var enemy: Gunda = spawner.debug_spawn_variant(0 if event.physical_keycode == KEY_F4 else 1)
+			_on_feedback("DEBUG: spawned " + enemy.name if enemy != null else "DEBUG: enemy cap reached.")
 
 func debug_damage_gunda() -> void:
 	# Temporary M1 test control; deliberately unrelated to player position/combat.
