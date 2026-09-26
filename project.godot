@@ -28,6 +28,10 @@ window/stretch/aspect="expand"
 
 enabled=PackedStringArray("res://addons/godot_mcp_toolkit/plugin.cfg")
 
+[gui]
+
+theme/custom_font="res://assets/fonts/videotype.otf"
+
 [input]
 
 move_up={

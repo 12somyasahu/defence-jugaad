@@ -80,7 +80,7 @@ offset_bottom = 167.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 0.45)
 theme_override_font_sizes/font_size = 10
-text = "DEBUG ONLY: F3 damages oldest Gunda by 15 (two presses kill). Blue square = player."
+text = "DEBUG: F4 Chotu | F5 Pehelwan | F6 Kabadiwala | F7 Skip Timer | F8 Event"
 horizontal_alignment = 2
 
 [node name="Defeat" type="Label" parent="PrototypeOverlay" unique_id=1436226220]

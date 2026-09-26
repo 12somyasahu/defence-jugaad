@@ -227,11 +227,12 @@ func _exit_tree() -> void:
 			part.queue_free()
 
 func _draw() -> void:
-	draw_rect(Rect2(-65, -67, 130, 134), Color(0.28, 0.2, 0.12))
-	draw_rect(Rect2(-65, -67, 130, 134), Color.GOLD, false, 4)
-	for y in [-58, 58]:
-		for x in [-48, 48]:
-			draw_circle(Vector2(x, y), 14, Color.DARK_SLATE_GRAY)
+	if not has_node("Presentation"):
+		draw_rect(Rect2(-65, -67, 130, 134), Color(0.28, 0.2, 0.12))
+		draw_rect(Rect2(-65, -67, 130, 134), Color.GOLD, false, 4)
+		for y in [-58, 58]:
+			for x in [-48, 48]:
+				draw_circle(Vector2(x, y), 14, Color.DARK_SLATE_GRAY)
 	if speaker_charge > 0:
 		draw_arc(Vector2.ZERO, speaker_radius, 0, TAU, 64, Color(1, 0.3, 0.2, 0.5), 2)
 		draw_arc(Vector2.ZERO, speaker_radius * (1.0 - speaker_charge / telegraph_seconds), 0, TAU, 64, Color.ORANGE_RED, 5)

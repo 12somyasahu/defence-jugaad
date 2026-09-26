@@ -71,7 +71,17 @@ func _ready() -> void:
 	var sprite: Sprite2D = $Sprite
 	sprite.texture = TEXTURES[kind]
 	if sprite.texture != null:
-		sprite.scale = Vector2.ONE * SPRITE_SIZE / maxf(sprite.texture.get_width(), sprite.texture.get_height())
+		var tex_w: float = float(sprite.texture.get_width())
+		var tex_h: float = float(sprite.texture.get_height())
+		var geo_mean: float = sqrt(tex_w * tex_h)
+		# Homogenous visual footprint: area-normalized scale (~50x50 px base footprint)
+		var s: float = 50.0 / geo_mean
+		# Prevent extreme aspect elongation from dominating screen footprint
+		if tex_w * s > 72.0:
+			s = 72.0 / tex_w
+		elif tex_h * s > 56.0:
+			s = 56.0 / tex_h
+		sprite.scale = Vector2(s, s)
 		# The sprite already shows the combined parts; mini components are the no-texture fallback.
 		$Parts.hide()
 	for i in 2:

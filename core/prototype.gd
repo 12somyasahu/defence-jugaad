@@ -63,7 +63,7 @@ func _ready() -> void:
 	workshop.health_changed.connect(_on_health_changed)
 	workshop.destroyed.connect(_on_destroyed)
 	_on_health_changed(workshop.current_hp, workshop.maximum_hp)
-	$PrototypeOverlay/DebugHint.text = "DEBUG: F3 damage | F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer | F8 force next event | F11 +20 Scrap | F12 grant next mod"
+	$PrototypeOverlay/DebugHint.text = "DEBUG: F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer | F8 force next event | F11 +20 Scrap | F12 grant next mod"
 	if not OS.is_debug_build():
 		$PrototypeOverlay/DebugHint.hide()
 	run_stats.setup(self)

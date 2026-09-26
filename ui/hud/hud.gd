@@ -3,6 +3,8 @@ extends CanvasLayer
 
 const SLOT_EMPTY = preload("res://assets/ui/hud_slot_empty.png")
 const SLOT_ACTIVE = preload("res://assets/ui/hud_slot_active.png")
+const TEX_WARNING_PANEL = preload("res://assets/ui/panels/warning_panel.png")
+const TEX_NOTIFICATION_PANEL = preload("res://assets/ui/panels/notification_panel.png")
 
 @onready var health_bar: TextureProgressBar = $MarginContainer/TopPanel/WorkshopHealth/ProgressBar
 @onready var workshop_hp_label: Label = $MarginContainer/TopPanel/WorkshopHealth/Label
@@ -14,6 +16,7 @@ const SLOT_ACTIVE = preload("res://assets/ui/hud_slot_active.png")
 @onready var phase_label: Label = $MarginContainer/TopPanel/WaveInfo/PhaseContainer/PhaseLabel
 @onready var mods_label: Label = $MarginContainer/TopPanel/WaveInfo/ModsLabel
 @onready var announcement_band: ColorRect = $CinematicOverlay/AnnouncementBand
+@onready var announcement_frame: TextureRect = $CinematicOverlay.get_node_or_null("AnnouncementFrame")
 @onready var announcement_label: Label = $CinematicOverlay/Announcement
 var _announcement_tween: Tween
 var _hp_flash_tween: Tween
@@ -56,6 +59,8 @@ func _ready() -> void:
 	update_hand_slot(right_slot, right_icon, null)
 	if announcement_band:
 		announcement_band.hide()
+	if announcement_frame:
+		announcement_frame.hide()
 	if end_game_overlay:
 		end_game_overlay.hide()
 	if victory_panel:
@@ -196,6 +201,8 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 		announcement_label.hide()
 		if announcement_band:
 			announcement_band.hide()
+		if announcement_frame:
+			announcement_frame.hide()
 		return
 
 	announcement_label.text = text
@@ -204,6 +211,14 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 	if announcement_band:
 		announcement_band.modulate.a = 1.0
 		announcement_band.show()
+
+	if announcement_frame:
+		var is_warning: bool = text.contains("INCOMING") or text.contains("AAYE GUNDE") or text.contains("NAYA RAASTA") or text.contains("HAFTA")
+		announcement_frame.texture = TEX_WARNING_PANEL if is_warning else TEX_NOTIFICATION_PANEL
+		announcement_frame.pivot_offset = announcement_frame.size * 0.5
+		announcement_frame.scale = Vector2(1.2, 1.2)
+		announcement_frame.modulate.a = 1.0
+		announcement_frame.show()
 
 	# Dramatic entrance punch / scale animation
 	announcement_label.pivot_offset = announcement_label.size * 0.5
@@ -222,6 +237,8 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 	_announcement_tween = create_tween()
 	_announcement_tween.set_parallel(true)
 	_announcement_tween.tween_property(announcement_label, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if announcement_frame:
+		_announcement_tween.tween_property(announcement_frame, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	if seconds > 0.0:
 		var fade_delay: float = maxf(0.0, seconds - 0.35)
@@ -229,11 +246,16 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 		_announcement_tween.chain().tween_property(announcement_label, "modulate:a", 0.0, 0.35)
 		if announcement_band:
 			_announcement_tween.tween_property(announcement_band, "modulate:a", 0.0, 0.35)
+		if announcement_frame:
+			_announcement_tween.tween_property(announcement_frame, "modulate:a", 0.0, 0.35)
 		_announcement_tween.chain().tween_callback(func():
 			announcement_label.hide()
 			if announcement_band:
 				announcement_band.hide()
 				announcement_band.modulate.a = 1.0
+			if announcement_frame:
+				announcement_frame.hide()
+				announcement_frame.modulate.a = 1.0
 		)
 
 ## Presentation update for Scrap display
