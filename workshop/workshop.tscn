@@ -1,0 +1,52 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://workshop/workshop.gd" id="1"]
+[ext_resource type="Script" path="res://workshop/workshop_presentation.gd" id="2_pres"]
+[ext_resource type="Texture2D" path="res://assets/workshop/workshop.png" id="3_ws_tex"]
+
+[sub_resource type="CircleShape2D" id="Shape"]
+radius = 48.0
+
+[node name="Workshop" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("Shape")
+
+[node name="Placeholder" type="Polygon2D" parent="."]
+visible = false
+polygon = PackedVector2Array(-34, -34, 0, -48, 34, -34, 48, 0, 34, 34, 0, 48, -34, 34, -48, 0)
+color = Color(0.95, 0.7, 0.2, 1)
+
+[node name="Presentation" type="Node2D" parent="."]
+script = ExtResource("2_pres")
+
+[node name="Sprite2D" type="Sprite2D" parent="Presentation"]
+position = Vector2(0, -18)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("3_ws_tex")
+
+[node name="SmokeParticles" type="CPUParticles2D" parent="Presentation"]
+position = Vector2(0, -25)
+emitting = false
+amount = 16
+lifetime = 1.2
+emission_shape = 1
+emission_sphere_radius = 24.0
+gravity = Vector2(0, -60)
+scale_amount_min = 4.0
+scale_amount_max = 8.0
+color = Color(0.35, 0.32, 0.3, 0.6)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -60.0
+offset_top = -88.0
+offset_right = 60.0
+offset_bottom = -65.0
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.05, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "WORKSHOP"
+horizontal_alignment = 1

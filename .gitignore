@@ -15,3 +15,9 @@ Thumbs.db
 
 # Machine-local MCP client launcher; keep the shared addon and its template
 /.mcp.json
+
+
+# ai generated images
+
+scratch/
+asset_pngs/
