@@ -54,8 +54,10 @@ func apply_knockback(_impulse: Vector2) -> void:
 	pass
 
 func _draw() -> void:
+	# Presentation only: a light target ring so the Tempo art underneath stays visible.
 	var radius: float = 27.0 if part_id == &"chassis" else 19.0
-	draw_rect(Rect2(-radius, -radius, radius * 2, radius * 2), tint)
-	draw_rect(Rect2(-radius, -radius, radius * 2, radius * 2), Color.BLACK, false, 3.0)
+	draw_circle(Vector2.ZERO, radius, Color(tint, 0.0 if part_id == &"chassis" else 0.22))
+	draw_arc(Vector2.ZERO, radius, 0, TAU, 32, Color(0, 0, 0, 0.6), 4.0)
+	draw_arc(Vector2.ZERO, radius, 0, TAU, 32, Color(tint, 0.9), 2.0)
 	if part_id == &"engine":
-		draw_line(Vector2(-12, -10), Vector2(12, 10), Color.ORANGE, 6)
+		draw_line(Vector2(-8, -7), Vector2(8, 7), Color.ORANGE, 4)

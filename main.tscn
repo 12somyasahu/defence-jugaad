@@ -16,6 +16,7 @@
 [ext_resource type="Script" uid="uid://c4e84ph23d178" path="res://core/boss_director.gd" id="14"]
 [ext_resource type="Script" uid="uid://cxwffu8vrb1ep" path="res://core/run_stats.gd" id="15"]
 [ext_resource type="Script" uid="uid://bq570arqeo12o" path="res://audio/audio_manager.gd" id="16"]
+[ext_resource type="PackedScene" path="res://ui/shell/game_shell.tscn" id="17"]
 
 [node name="Main" type="Node2D" unique_id=943374884]
 script = ExtResource("1")
@@ -116,3 +117,5 @@ script = ExtResource("16")
 
 [node name="BossDirector" type="Node" parent="."]
 script = ExtResource("14")
+
+[node name="GameShell" parent="." instance=ExtResource("17")]

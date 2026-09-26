@@ -127,6 +127,7 @@ size_flags_vertical = 0
 [node name="WorkshopHealth" type="VBoxContainer" parent="MarginContainer/TopPanel"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 16
 
 [node name="WorkshopPanel" type="Panel" parent="MarginContainer/TopPanel/WorkshopHealth"]
 show_behind_parent = true
@@ -392,13 +393,13 @@ color = Color(0, 0, 0, 0)
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 0.31
+anchor_top = 0.39
 anchor_right = 0.5
-anchor_bottom = 0.31
-offset_left = -260.0
-offset_top = -110.0
-offset_right = 260.0
-offset_bottom = 110.0
+anchor_bottom = 0.39
+offset_left = -210.0
+offset_top = -89.0
+offset_right = 210.0
+offset_bottom = 89.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -410,13 +411,13 @@ stretch_mode = 5
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 0.31
+anchor_top = 0.39
 anchor_right = 0.5
-anchor_bottom = 0.31
-offset_left = -180.0
-offset_top = -60.0
-offset_right = 180.0
-offset_bottom = 60.0
+anchor_bottom = 0.39
+offset_left = -150.0
+offset_top = -50.0
+offset_right = 150.0
+offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -471,6 +472,7 @@ horizontal_alignment = 1
 
 [node name="Stats" type="Label" parent="EndGameOverlay/VictoryPanel/VBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.14, 0.06, 1)
 theme_override_font_sizes/font_size = 15
 text = "All 5 Waves Defended Successfully!"
 horizontal_alignment = 1
