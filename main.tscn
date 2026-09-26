@@ -7,15 +7,15 @@
 [ext_resource type="Script" uid="uid://ns36ftpvt58y" path="res://core/gunda_spawner.gd" id="5"]
 [ext_resource type="PackedScene" path="res://core/jugaad_loop.tscn" id="6"]
 [ext_resource type="PackedScene" uid="uid://cx6q8rtye2j8h" path="res://ui/hud/hud.tscn" id="7"]
-[ext_resource type="Script" path="res://core/scrap_economy.gd" id="8"]
+[ext_resource type="Script" uid="uid://1258mp35084s" path="res://core/scrap_economy.gd" id="8"]
 [ext_resource type="PackedScene" path="res://core/kabadiwala.tscn" id="9"]
-[ext_resource type="Script" path="res://core/wave_director.gd" id="10"]
+[ext_resource type="Script" uid="uid://d08w0gmewsptq" path="res://core/wave_director.gd" id="10"]
 [ext_resource type="PackedScene" path="res://core/attack_route.tscn" id="11"]
-[ext_resource type="Script" path="res://core/event_director.gd" id="12"]
-[ext_resource type="Script" path="res://core/upgrade_system.gd" id="13"]
-[ext_resource type="Script" path="res://core/boss_director.gd" id="14"]
-[ext_resource type="Script" path="res://core/run_stats.gd" id="15"]
-[ext_resource type="Script" path="res://audio/audio_manager.gd" id="16"]
+[ext_resource type="Script" uid="uid://6hwaq6jdyeq8" path="res://core/event_director.gd" id="12"]
+[ext_resource type="Script" uid="uid://cb8mya5pugmox" path="res://core/upgrade_system.gd" id="13"]
+[ext_resource type="Script" uid="uid://c4e84ph23d178" path="res://core/boss_director.gd" id="14"]
+[ext_resource type="Script" uid="uid://cxwffu8vrb1ep" path="res://core/run_stats.gd" id="15"]
+[ext_resource type="Script" uid="uid://bq570arqeo12o" path="res://audio/audio_manager.gd" id="16"]
 
 [node name="Main" type="Node2D" unique_id=943374884]
 script = ExtResource("1")
@@ -36,21 +36,19 @@ position = Vector2(430, 0)
 script = ExtResource("5")
 auto_spawn = false
 
-[node name="AttackRoutes" type="Node2D" parent="."]
+[node name="AttackRoutes" type="Node2D" parent="." unique_id=992374933]
 
-[node name="East" parent="AttackRoutes" instance=ExtResource("11")]
-route_name = "EAST"
-direction = Vector2(1, 0)
+[node name="East" parent="AttackRoutes" unique_id=1458636052 instance=ExtResource("11")]
 
-[node name="North" parent="AttackRoutes" instance=ExtResource("11")]
+[node name="North" parent="AttackRoutes" unique_id=153000007 instance=ExtResource("11")]
 route_name = "NORTH"
 direction = Vector2(0, -1)
 
-[node name="West" parent="AttackRoutes" instance=ExtResource("11")]
+[node name="West" parent="AttackRoutes" unique_id=1432906024 instance=ExtResource("11")]
 route_name = "WEST"
 direction = Vector2(-1, 0)
 
-[node name="South" parent="AttackRoutes" instance=ExtResource("11")]
+[node name="South" parent="AttackRoutes" unique_id=283132148 instance=ExtResource("11")]
 route_name = "SOUTH"
 direction = Vector2(0, 1)
 
@@ -82,8 +80,8 @@ offset_bottom = 167.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 0.45)
 theme_override_font_sizes/font_size = 10
+text = "DEBUG: F4 Chotu | F5 Pehelwan | F6 Kabadiwala | F7 Skip Timer | F8 Event"
 horizontal_alignment = 2
-text = "DEBUG ONLY: F3 damages oldest Gunda by 15 (two presses kill). Blue square = player."
 
 [node name="Defeat" type="Label" parent="PrototypeOverlay" unique_id=1436226220]
 visible = false
@@ -93,18 +91,18 @@ text = "WORKSHOP DESTROYED
 Defeat - press R to restart"
 horizontal_alignment = 1
 
-[node name="HUD" parent="." instance=ExtResource("7")]
+[node name="HUD" parent="." unique_id=1758475232 instance=ExtResource("7")]
 
-[node name="ScrapEconomy" type="Node" parent="."]
+[node name="ScrapEconomy" type="Node" parent="." unique_id=1171417773]
 script = ExtResource("8")
 
-[node name="Kabadiwala" parent="." instance=ExtResource("9")]
+[node name="Kabadiwala" parent="." unique_id=1121160883 instance=ExtResource("9")]
 position = Vector2(330, 160)
 
-[node name="WaveDirector" type="Node" parent="."]
+[node name="WaveDirector" type="Node" parent="." unique_id=26134779]
 script = ExtResource("10")
 
-[node name="EventDirector" type="Node" parent="."]
+[node name="EventDirector" type="Node" parent="." unique_id=965061059]
 script = ExtResource("12")
 
 [node name="UpgradeSystem" type="Node" parent="."]

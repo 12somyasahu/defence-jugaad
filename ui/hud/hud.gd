@@ -3,14 +3,20 @@ extends CanvasLayer
 
 const SLOT_EMPTY = preload("res://assets/ui/hud_slot_empty.png")
 const SLOT_ACTIVE = preload("res://assets/ui/hud_slot_active.png")
+const TEX_WARNING_PANEL = preload("res://assets/ui/panels/warning_panel.png")
+const TEX_NOTIFICATION_PANEL = preload("res://assets/ui/panels/notification_panel.png")
 
 @onready var health_bar: TextureProgressBar = $MarginContainer/TopPanel/WorkshopHealth/ProgressBar
 @onready var workshop_hp_label: Label = $MarginContainer/TopPanel/WorkshopHealth/Label
 @onready var wave_label: Label = $MarginContainer/TopPanel/WaveInfo/WaveLabel
-@onready var scrap_label: Label = $MarginContainer/TopPanel/WaveInfo/ScrapLabel
-@onready var phase_label: Label = $MarginContainer/TopPanel/WaveInfo/PhaseLabel
+@onready var scrap_container: HBoxContainer = $MarginContainer/TopPanel/WaveInfo/ScrapContainer
+@onready var scrap_label: Label = $MarginContainer/TopPanel/WaveInfo/ScrapContainer/ScrapLabel
+@onready var phase_container: HBoxContainer = $MarginContainer/TopPanel/WaveInfo/PhaseContainer
+@onready var watch_icon: TextureRect = $MarginContainer/TopPanel/WaveInfo/PhaseContainer/WatchIcon
+@onready var phase_label: Label = $MarginContainer/TopPanel/WaveInfo/PhaseContainer/PhaseLabel
 @onready var mods_label: Label = $MarginContainer/TopPanel/WaveInfo/ModsLabel
 @onready var announcement_band: ColorRect = $CinematicOverlay/AnnouncementBand
+@onready var announcement_frame: TextureRect = $CinematicOverlay.get_node_or_null("AnnouncementFrame")
 @onready var announcement_label: Label = $CinematicOverlay/Announcement
 var _announcement_tween: Tween
 var _hp_flash_tween: Tween
@@ -22,14 +28,23 @@ var _low_hp: bool = false
 func _process(delta: float) -> void:
 	_pulse_time += delta
 	var pulse: float = 0.78 + 0.22 * sin(_pulse_time * 8.0)
-	phase_label.modulate.a = pulse if _urgent else 1.0
-	workshop_hp_label.modulate.a = pulse if _low_hp else 1.0
+	if phase_label:
+		phase_label.modulate.a = pulse if _urgent else 1.0
+	if watch_icon and _urgent:
+		watch_icon.modulate.a = pulse
+	elif watch_icon:
+		watch_icon.modulate.a = 1.0
+	if workshop_hp_label:
+		workshop_hp_label.modulate.a = pulse if _low_hp else 1.0
 
 @onready var left_slot: TextureRect = $MarginContainer/BottomPanel/Hands/LeftHand/SlotBackground
 @onready var left_icon: TextureRect = $MarginContainer/BottomPanel/Hands/LeftHand/SlotBackground/ItemIcon
 @onready var right_slot: TextureRect = $MarginContainer/BottomPanel/Hands/RightHand/SlotBackground
 @onready var right_icon: TextureRect = $MarginContainer/BottomPanel/Hands/RightHand/SlotBackground/ItemIcon
-@onready var prompt_label: Label = $MarginContainer/BottomPanel/PromptLabel
+@onready var prompt_container: HBoxContainer = $MarginContainer/BottomPanel/PromptContainer
+@onready var keycap_rect: TextureRect = $MarginContainer/BottomPanel/PromptContainer/Keycap
+@onready var keycap_label: Label = $MarginContainer/BottomPanel/PromptContainer/Keycap/KeyLabel
+@onready var prompt_label: Label = $MarginContainer/BottomPanel/PromptContainer/PromptLabel
 
 @onready var end_game_overlay: Control = $EndGameOverlay
 @onready var victory_panel: PanelContainer = $EndGameOverlay/VictoryPanel
@@ -44,6 +59,8 @@ func _ready() -> void:
 	update_hand_slot(right_slot, right_icon, null)
 	if announcement_band:
 		announcement_band.hide()
+	if announcement_frame:
+		announcement_frame.hide()
 	if end_game_overlay:
 		end_game_overlay.hide()
 	if victory_panel:
@@ -105,13 +122,16 @@ func set_wave_info_visible(value: bool) -> void:
 		_update_info_visibility()
 
 func set_scrap_visible(value: bool) -> void:
-	if scrap_label:
+	if scrap_container:
+		scrap_container.visible = value
+	elif scrap_label:
 		scrap_label.visible = value
-		_update_info_visibility()
+	_update_info_visibility()
 
 func _update_info_visibility() -> void:
 	if wave_label and wave_label.get_parent():
-		wave_label.get_parent().visible = wave_label.visible or scrap_label.visible
+		var scrap_vis: bool = scrap_container.visible if scrap_container else (scrap_label.visible if scrap_label else false)
+		wave_label.get_parent().visible = wave_label.visible or scrap_vis
 
 ## Helper to switch slot texture between empty and active
 func update_hand_slot(slot_rect: TextureRect, icon_rect: TextureRect, item_texture: Texture2D) -> void:
@@ -138,8 +158,15 @@ func set_wave_status(text: String) -> void:
 	if not phase_label:
 		return
 	phase_label.text = text
-	phase_label.visible = not text.is_empty()
+	var is_vis: bool = not text.is_empty()
+	if phase_container:
+		phase_container.visible = is_vis
+	phase_label.visible = is_vis
 	_urgent = false
+
+	var is_prep_or_countdown: bool = text.contains("PREPARE") or text.contains("NEXT WAVE") or text.contains("INCOMING")
+	if watch_icon:
+		watch_icon.visible = is_vis and is_prep_or_countdown
 
 	# Dynamic visual identity per phase
 	if text.contains("PREPARE") or text.contains("NEXT WAVE"):
@@ -174,6 +201,8 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 		announcement_label.hide()
 		if announcement_band:
 			announcement_band.hide()
+		if announcement_frame:
+			announcement_frame.hide()
 		return
 
 	announcement_label.text = text
@@ -182,6 +211,14 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 	if announcement_band:
 		announcement_band.modulate.a = 1.0
 		announcement_band.show()
+
+	if announcement_frame:
+		var is_warning: bool = text.contains("INCOMING") or text.contains("AAYE GUNDE") or text.contains("NAYA RAASTA") or text.contains("HAFTA")
+		announcement_frame.texture = TEX_WARNING_PANEL if is_warning else TEX_NOTIFICATION_PANEL
+		announcement_frame.pivot_offset = announcement_frame.size * 0.5
+		announcement_frame.scale = Vector2(1.2, 1.2)
+		announcement_frame.modulate.a = 1.0
+		announcement_frame.show()
 
 	# Dramatic entrance punch / scale animation
 	announcement_label.pivot_offset = announcement_label.size * 0.5
@@ -200,6 +237,8 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 	_announcement_tween = create_tween()
 	_announcement_tween.set_parallel(true)
 	_announcement_tween.tween_property(announcement_label, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if announcement_frame:
+		_announcement_tween.tween_property(announcement_frame, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	if seconds > 0.0:
 		var fade_delay: float = maxf(0.0, seconds - 0.35)
@@ -207,11 +246,16 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 		_announcement_tween.chain().tween_property(announcement_label, "modulate:a", 0.0, 0.35)
 		if announcement_band:
 			_announcement_tween.tween_property(announcement_band, "modulate:a", 0.0, 0.35)
+		if announcement_frame:
+			_announcement_tween.tween_property(announcement_frame, "modulate:a", 0.0, 0.35)
 		_announcement_tween.chain().tween_callback(func():
 			announcement_label.hide()
 			if announcement_band:
 				announcement_band.hide()
 				announcement_band.modulate.a = 1.0
+			if announcement_frame:
+				announcement_frame.hide()
+				announcement_frame.modulate.a = 1.0
 		)
 
 ## Presentation update for Scrap display
@@ -221,15 +265,39 @@ func set_scrap(scrap_amount: int) -> void:
 
 ## Presentation update for Contextual Prompt
 func set_prompt(prompt_text: String) -> void:
-	if not prompt_label:
+	if not prompt_container or not prompt_label:
 		return
-	prompt_label.text = prompt_text
-	prompt_label.visible = not prompt_text.is_empty()
+	if prompt_text.is_empty():
+		prompt_container.visible = false
+		return
+	prompt_container.visible = true
+
+	# Check for key prompt format "[KEY] ACTION" or "[ KEY - ACTION ]"
+	if prompt_text.begins_with("[") and prompt_text.contains("]"):
+		var close_bracket: int = prompt_text.find("]")
+		var key_str: String = prompt_text.substr(1, close_bracket - 1).strip_edges()
+		var action_str: String = prompt_text.substr(close_bracket + 1).strip_edges()
+		if action_str.begins_with("-"):
+			action_str = action_str.substr(1).strip_edges()
+		if key_str.length() <= 3 and not action_str.is_empty():
+			if keycap_rect and keycap_label:
+				keycap_rect.visible = true
+				keycap_label.text = key_str
+			prompt_label.text = action_str
+		else:
+			if keycap_rect:
+				keycap_rect.visible = false
+			prompt_label.text = prompt_text
+	else:
+		if keycap_rect:
+			keycap_rect.visible = false
+		prompt_label.text = prompt_text
+
 	if prompt_text.begins_with("+"):
 		prompt_label.modulate = Color(0.4, 0.95, 0.4, 1.0) # Green scrap reward
-	elif prompt_text.begins_with("[E]"):
+	elif prompt_text.contains("[E]") or prompt_text.begins_with("E") or (keycap_rect and keycap_rect.visible and keycap_label.text == "E"):
 		prompt_label.modulate = Color(1.0, 0.9, 0.4, 1.0) # Gold place prompt
-	elif prompt_text.begins_with("[Q]"):
+	elif prompt_text.contains("[Q]") or prompt_text.begins_with("Q") or (keycap_rect and keycap_rect.visible and keycap_label.text == "Q"):
 		prompt_label.modulate = Color(0.4, 0.85, 1.0, 1.0) # Cyan combine prompt
 	else:
 		prompt_label.modulate = Color(1.0, 0.8, 0.6, 1.0)

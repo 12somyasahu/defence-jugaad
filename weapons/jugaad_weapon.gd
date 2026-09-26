@@ -25,12 +25,17 @@ const DAMAGE: Array[int] = [10, 12, 3, 6, 4, 60, 5, 42, 2]
 const INSTABILITY_PER_ATTACK: Array[float] = [2.0, 20.0, 12.5, 6.0, 7.0, 12.0, 5.0, 22.0, 5.0]
 # Push strength for knockback Jugaads (0 = no knockback behaviour).
 const KNOCKBACK: Array[float] = [0.0, 0.0, 300.0, 0.0, 120.0, 0.0, 0.0, 0.0, 70.0]
-# Presentation only, indexed by Kind. Dhamaal Box has no production PNG yet; its SVG placeholder is kept.
+# Presentation only, indexed by Kind.
 const TEXTURES: Array[Texture2D] = [
 	preload("res://assets/jugaads/chakri_gun.png"),
-	preload("res://assets/weapons/dhamaal_box.svg"),
+	preload("res://assets/jugaads/dhamaal_box.png"),
 	preload("res://assets/jugaads/pressure_horn.png"),
-	null, null, null, null, null, null, # Source-component fallback until production art arrives.
+	preload("res://assets/jugaads/bijli_chakri.png"),
+	preload("res://assets/jugaads/turbo_pankha.png"),
+	preload("res://assets/jugaads/jhatka_sling.png"),
+	preload("res://assets/jugaads/pressure_chakra.png"),
+	null, # Cooker Cannon: source-component fallback per scope boundary.
+	preload("res://assets/jugaads/aandhi_dj.png"),
 ]
 const SPRITE_SIZE: float = 60.0
 
@@ -66,7 +71,17 @@ func _ready() -> void:
 	var sprite: Sprite2D = $Sprite
 	sprite.texture = TEXTURES[kind]
 	if sprite.texture != null:
-		sprite.scale = Vector2.ONE * SPRITE_SIZE / maxf(sprite.texture.get_width(), sprite.texture.get_height())
+		var tex_w: float = float(sprite.texture.get_width())
+		var tex_h: float = float(sprite.texture.get_height())
+		var geo_mean: float = sqrt(tex_w * tex_h)
+		# Homogenous visual footprint: area-normalized scale (~50x50 px base footprint)
+		var s: float = 50.0 / geo_mean
+		# Prevent extreme aspect elongation from dominating screen footprint
+		if tex_w * s > 72.0:
+			s = 72.0 / tex_w
+		elif tex_h * s > 56.0:
+			s = 56.0 / tex_h
+		sprite.scale = Vector2(s, s)
 		# The sprite already shows the combined parts; mini components are the no-texture fallback.
 		$Parts.hide()
 	for i in 2:
