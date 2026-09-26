@@ -1,10 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://cx6q8rtye2j8h"]
+[gd_scene load_steps=14 format=3 uid="uid://cx6q8rtye2j8h"]
 
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud_script"]
 [ext_resource type="Texture2D" uid="uid://qscejqcqel53" path="res://assets/ui/workshop_bar_empty.png" id="2_bar_empty"]
 [ext_resource type="Texture2D" uid="uid://cjq6158hm2y51" path="res://assets/ui/workshop_bar_damaged.png" id="3_bar_damaged"]
 [ext_resource type="Texture2D" uid="uid://cf7ldfn67j82k" path="res://assets/ui/hud_slot_empty.png" id="4_slot_empty"]
 [ext_resource type="Texture2D" uid="uid://ckdxbud0avicu" path="res://assets/ui/hud_slot_active.png" id="5_slot_active"]
+[ext_resource type="Texture2D" uid="uid://d3ijy7ml408nn" path="res://assets/ui/hud/workshop_health_bar_frame.png" id="6_ws_frame"]
+[ext_resource type="Texture2D" uid="uid://baiogujyfmg7p" path="res://assets/ui/hud/boss_health_bar_frame.png" id="7_boss_frame"]
+[ext_resource type="Texture2D" uid="uid://dbc0ug1yf3q7o" path="res://assets/ui/icons/scrap.png" id="8_scrap_icon"]
+[ext_resource type="Texture2D" uid="uid://dk4p7n8412epv" path="res://assets/ui/icons/preparation_watch.png" id="9_watch_icon"]
+[ext_resource type="Texture2D" uid="uid://hrxqhg1mw2e6" path="res://assets/ui/prompts/keycap/normal.png" id="10_keycap_norm"]
 
 [sub_resource type="StyleBoxFlat" id="VictoryStyle"]
 bg_color = Color(0.1, 0.08, 0.05, 0.95)
@@ -70,7 +75,7 @@ theme_override_font_sizes/font_size = 24
 text = "WORKSHOP HP"
 
 [node name="ProgressBar" type="TextureProgressBar" parent="MarginContainer/TopPanel/WorkshopHealth"]
-custom_minimum_size = Vector2(285, 40)
+custom_minimum_size = Vector2(300, 50)
 layout_mode = 2
 size_flags_horizontal = 0
 value = 100.0
@@ -83,6 +88,21 @@ texture_under = ExtResource("2_bar_empty")
 texture_progress = ExtResource("3_bar_damaged")
 tint_progress = Color(0.3, 0.85, 0.3, 1)
 
+[node name="Frame" type="TextureRect" parent="MarginContainer/TopPanel/WorkshopHealth/ProgressBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -14.0
+offset_top = -14.0
+offset_right = 12.0
+offset_bottom = 18.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_ws_frame")
+expand_mode = 1
+
 [node name="WaveInfo" type="VBoxContainer" parent="MarginContainer/TopPanel"]
 layout_mode = 2
 
@@ -94,7 +114,19 @@ theme_override_font_sizes/font_size = 32
 text = "WAVE 1"
 horizontal_alignment = 2
 
-[node name="ScrapLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
+[node name="ScrapContainer" type="HBoxContainer" parent="MarginContainer/TopPanel/WaveInfo"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 6
+
+[node name="ScrapIcon" type="TextureRect" parent="MarginContainer/TopPanel/WaveInfo/ScrapContainer"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+texture = ExtResource("8_scrap_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ScrapLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo/ScrapContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.533333, 0.827451, 0.192157, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -103,8 +135,21 @@ theme_override_font_sizes/font_size = 20
 text = "SCRAP: 0"
 horizontal_alignment = 2
 
-[node name="PhaseLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
+[node name="PhaseContainer" type="HBoxContainer" parent="MarginContainer/TopPanel/WaveInfo"]
 visible = false
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 6
+
+[node name="WatchIcon" type="TextureRect" parent="MarginContainer/TopPanel/WaveInfo/PhaseContainer"]
+visible = false
+custom_minimum_size = Vector2(20, 22)
+layout_mode = 2
+texture = ExtResource("9_watch_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PhaseLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo/PhaseContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -197,7 +242,37 @@ grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="PromptLabel" type="Label" parent="MarginContainer/BottomPanel"]
+[node name="PromptContainer" type="HBoxContainer" parent="MarginContainer/BottomPanel"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="Keycap" type="TextureRect" parent="MarginContainer/BottomPanel/PromptContainer"]
+visible = false
+custom_minimum_size = Vector2(30, 28)
+layout_mode = 2
+texture = ExtResource("10_keycap_norm")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="KeyLabel" type="Label" parent="MarginContainer/BottomPanel/PromptContainer/Keycap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.15, 0.12, 0.1, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.6)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 15
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="MarginContainer/BottomPanel/PromptContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.905882, 0.298039, 0.235294, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -340,13 +415,14 @@ text = "[R] PHIR SE JUGAAD KARO"
 visible = false
 offset_left = 20.0
 offset_top = 170.0
-offset_right = 280.0
+offset_right = 380.0
 offset_bottom = 310.0
 mouse_filter = 2
 
 [node name="VBox" type="VBoxContainer" parent="BossPanel"]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="BossPanel/VBox"]
 layout_mode = 2
@@ -355,9 +431,25 @@ theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
 
 [node name="Health" type="ProgressBar" parent="BossPanel/VBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(250, 24)
+custom_minimum_size = Vector2(320, 36)
 max_value = 1500.0
 value = 1500.0
+show_percentage = false
+
+[node name="Frame" type="TextureRect" parent="BossPanel/VBox/Health"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -13.0
+offset_top = -18.0
+offset_right = 15.0
+offset_bottom = 14.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7_boss_frame")
+expand_mode = 1
 
 [node name="Modules" type="Label" parent="BossPanel/VBox"]
 layout_mode = 2

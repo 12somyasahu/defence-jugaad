@@ -25,12 +25,17 @@ const DAMAGE: Array[int] = [10, 12, 3, 6, 4, 60, 5, 42, 2]
 const INSTABILITY_PER_ATTACK: Array[float] = [2.0, 20.0, 12.5, 6.0, 7.0, 12.0, 5.0, 22.0, 5.0]
 # Push strength for knockback Jugaads (0 = no knockback behaviour).
 const KNOCKBACK: Array[float] = [0.0, 0.0, 300.0, 0.0, 120.0, 0.0, 0.0, 0.0, 70.0]
-# Presentation only, indexed by Kind. Dhamaal Box has no production PNG yet; its SVG placeholder is kept.
+# Presentation only, indexed by Kind.
 const TEXTURES: Array[Texture2D] = [
 	preload("res://assets/jugaads/chakri_gun.png"),
-	preload("res://assets/weapons/dhamaal_box.svg"),
+	preload("res://assets/jugaads/dhamaal_box.png"),
 	preload("res://assets/jugaads/pressure_horn.png"),
-	null, null, null, null, null, null, # Source-component fallback until production art arrives.
+	preload("res://assets/jugaads/bijli_chakri.png"),
+	preload("res://assets/jugaads/turbo_pankha.png"),
+	preload("res://assets/jugaads/jhatka_sling.png"),
+	preload("res://assets/jugaads/pressure_chakra.png"),
+	null, # Cooker Cannon: source-component fallback per scope boundary.
+	preload("res://assets/jugaads/aandhi_dj.png"),
 ]
 const SPRITE_SIZE: float = 60.0
 

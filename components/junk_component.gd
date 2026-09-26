@@ -4,13 +4,13 @@ extends Node2D
 enum Type { BATTERY, CYCLE_WHEEL, PRESSURE_COOKER, SPEAKER, TABLE_FAN, RUBBER_BAND }
 const DISPLAY_NAMES: Array[String] = ["Battery", "Cycle Wheel", "Pressure Cooker", "Speaker", "Table Fan", "Rubber Band"]
 const COLORS: Array[Color] = [Color.YELLOW, Color.LIGHT_GRAY, Color.CORAL, Color.MEDIUM_PURPLE, Color.LIGHT_SKY_BLUE, Color.LIME_GREEN]
-# Presentation only, indexed by Type. Table Fan has no production PNG yet; its SVG is the fallback.
+# Presentation only, indexed by Type.
 const TEXTURES: Array[Texture2D] = [
 	preload("res://assets/components/battery.png"),
 	preload("res://assets/components/cycle_wheel.png"),
 	preload("res://assets/components/pressure_cooker.png"),
 	preload("res://assets/components/speaker.png"),
-	preload("res://assets/components/table_fan.svg"),
+	preload("res://assets/components/table_fan.png"),
 	preload("res://assets/components/rubber_band.png"),
 ]
 const SPRITE_SIZE: float = 40.0
