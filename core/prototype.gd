@@ -17,6 +17,10 @@ var is_defeated: bool = false
 @onready var camera: Camera2D = $Camera2D
 @onready var wave_director: WaveDirector = $WaveDirector
 @onready var event_director: EventDirector = $EventDirector
+@onready var upgrades: UpgradeSystem = $UpgradeSystem
+@onready var boss_director: BossDirector = $BossDirector
+@onready var run_stats: RunStats = $RunStats
+@onready var audio: GameAudio = $AudioManager
 const PROMPT_SECONDS: float = 4.0
 var _prompt_message: String = ""
 var _prompt_remaining: float = 0.0
@@ -36,8 +40,12 @@ func _ready() -> void:
 		_on_enemy_entered(child)
 	jugaad_loop.hands_changed.connect(_on_hands_changed)
 	jugaad_loop.feedback.connect(_on_feedback)
+	jugaad_loop.upgrades = upgrades
 	jugaad_loop.setup(player, workshop, enemies)
-	kabadiwala.setup(economy, jugaad_loop, player)
+	kabadiwala.setup(economy, jugaad_loop, player, upgrades)
+	upgrades.setup(economy, workshop, jugaad_loop, wave_director)
+	upgrades.feedback.connect(_on_feedback)
+	upgrades.mods_changed.connect(_on_mods_changed)
 	kabadiwala.feedback.connect(_on_feedback)
 	kabadiwala.availability_changed.connect(_on_shop_availability_changed)
 	arena.camera = camera
@@ -55,9 +63,12 @@ func _ready() -> void:
 	workshop.health_changed.connect(_on_health_changed)
 	workshop.destroyed.connect(_on_destroyed)
 	_on_health_changed(workshop.current_hp, workshop.maximum_hp)
-	$PrototypeOverlay/DebugHint.text = "DEBUG: F3 damage | F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer | F8 force next event"
+	$PrototypeOverlay/DebugHint.text = "DEBUG: F3 damage | F4 Chotu | F5 Pehelwan (cap 6, not wave-owned) | F6 Kabadiwala open/close | F7 skip timer | F8 force next event | F11 +20 Scrap | F12 grant next mod"
 	if not OS.is_debug_build():
 		$PrototypeOverlay/DebugHint.hide()
+	run_stats.setup(self)
+	audio.setup(self)
+	boss_director.setup(self)
 	wave_director.start()
 
 func _process(delta: float) -> void:
@@ -89,12 +100,14 @@ func _on_shop_availability_changed(available: bool) -> void:
 		wave_director.debug_spawning_paused = false
 	_refresh_wave_hud()
 
+func _on_mods_changed(_owned: Array[StringName]) -> void:
+	hud.set_owned_mods(upgrades.owned_names())
+
 func _on_arena_bounds_changed(bounds: Rect2) -> void:
 	jugaad_loop.arena = bounds
 
 func _on_victory() -> void:
-	hud.show_announcement("AREA DEFENDED\nVICTORY!\nPress R to play again", 0.0)
-	hud.show_victory(wave_director.total_waves(), economy.scrap)
+	hud.show_victory(wave_director.total_waves(), economy.scrap, run_stats.snapshot())
 	_refresh_wave_hud()
 
 func _refresh_wave_hud() -> void:
@@ -120,6 +133,18 @@ func _refresh_wave_hud() -> void:
 		WaveDirector.State.VICTORY:
 			text = "ALL %d WAVES CLEARED" % wave_director.total_waves()
 	var events: String = event_director.status_text()
+	if wave_director.boss_pending:
+		hud.wave_label.text = "FINAL: THEKEDAAR"
+		var route_name: String = boss_director.route.route_name if boss_director.route != null else "?"
+		match wave_director.state:
+			WaveDirector.State.PREPARATION:
+				text = "BOSS PREPARATION / SHOP OPEN\nFROM %s\nNEXT WAVE: %s" % [route_name, clock]
+			WaveDirector.State.COUNTDOWN:
+				text = "THEKEDAAR INCOMING: %d\nFROM %s" % [seconds, route_name]
+			WaveDirector.State.COMBAT:
+				text = "THEKEDAAR / COMBAT"
+			WaveDirector.State.VICTORY:
+				text = "THEKEDAAR DEFEATED"
 	if not events.is_empty() and not text.is_empty():
 		text += "\n" + events
 	hud.set_wave_status(text)
@@ -158,6 +183,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.physical_keycode == KEY_F8:
 			var forced: String = event_director.debug_force_next()
 			_on_feedback("DEBUG EVENT: " + forced if not forced.is_empty() else "DEBUG: no event eligible right now.")
+		elif event.physical_keycode == KEY_F11:
+			economy.debug_grant(20)
+			_on_feedback("DEBUG: +20 Scrap")
+		elif event.physical_keycode == KEY_F12:
+			var granted: StringName = upgrades.debug_grant()
+			_on_feedback("DEBUG MOD: " + UpgradeTable.MODS[granted].name if granted != &"" else "DEBUG: all mods owned.")
 		elif event.physical_keycode in [KEY_F4, KEY_F5]:
 			var enemy: Gunda = spawner.debug_spawn_variant(0 if event.physical_keycode == KEY_F4 else 1)
 			_on_feedback("DEBUG: spawned " + enemy.name if enemy != null else "DEBUG: spawning paused or enemy cap reached.")
@@ -180,6 +211,7 @@ func _on_destroyed() -> void:
 	if is_defeated:
 		return
 	is_defeated = true
+	run_stats.active = false
 	economy.active = false
 	kabadiwala.stop()
 	wave_director.stop()
@@ -194,7 +226,7 @@ func _on_destroyed() -> void:
 			enemy.velocity = Vector2.ZERO
 	defeat_label.hide()
 	hud.show_announcement("", 0.0)
-	hud.show_defeat(wave_director.current_wave(), economy.scrap)
+	hud.show_defeat(wave_director.current_wave(), economy.scrap, run_stats.snapshot(), wave_director.boss_pending)
 	_refresh_wave_hud()
 	_update_prompt()
 	defeated.emit()

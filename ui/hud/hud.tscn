@@ -106,10 +106,21 @@ horizontal_alignment = 2
 [node name="PhaseLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.945098, 0.768627, 0.0588235, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 18
+horizontal_alignment = 2
+
+[node name="ModsLabel" type="Label" parent="MarginContainer/TopPanel/WaveInfo"]
+visible = false
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.55, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
 horizontal_alignment = 2
 
 [node name="BottomPanel" type="VBoxContainer" parent="MarginContainer"]
@@ -195,7 +206,10 @@ theme_override_font_sizes/font_size = 20
 text = "[ E - PICK UP ]"
 horizontal_alignment = 1
 
-[node name="AnnouncementBand" type="ColorRect" parent="."]
+[node name="CinematicOverlay" type="CanvasLayer" parent="."]
+layer = 6
+
+[node name="AnnouncementBand" type="ColorRect" parent="CinematicOverlay"]
 visible = false
 anchors_preset = -1
 anchor_top = 0.22
@@ -207,7 +221,7 @@ grow_horizontal = 2
 mouse_filter = 2
 color = Color(0.08, 0.06, 0.05, 0.82)
 
-[node name="Announcement" type="Label" parent="."]
+[node name="Announcement" type="Label" parent="CinematicOverlay"]
 visible = false
 anchors_preset = -1
 anchor_top = 0.22
@@ -259,8 +273,8 @@ theme_override_colors/font_color = Color(1, 0.88, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.05, 0, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 36
-text = "AREA DEFENDED!
-VICTORY!"
+text = "DEFENCE JUGAAD
+YOU WIN"
 horizontal_alignment = 1
 
 [node name="Stats" type="Label" parent="EndGameOverlay/VictoryPanel/VBox"]
@@ -275,7 +289,7 @@ theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 16
-text = "Press [R] to Play Again"
+text = "[R] DEFEND AGAIN"
 horizontal_alignment = 1
 
 [node name="DefeatPanel" type="PanelContainer" parent="EndGameOverlay"]
@@ -305,8 +319,7 @@ theme_override_colors/font_color = Color(0.95, 0.25, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0, 0, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 36
-text = "WORKSHOP DESTROYED
-DEFEAT"
+text = "JUGAAD FAIL HO GAYA"
 horizontal_alignment = 1
 
 [node name="Stats" type="Label" parent="EndGameOverlay/DefeatPanel/VBox"]
@@ -321,5 +334,47 @@ theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 16
-text = "Press [R] to Rebuild and Restart"
+text = "[R] PHIR SE JUGAAD KARO"
+
+[node name="BossPanel" type="PanelContainer" parent="."]
+visible = false
+offset_left = 20.0
+offset_top = 170.0
+offset_right = 280.0
+offset_bottom = 310.0
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="BossPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="BossPanel/VBox"]
+layout_mode = 2
+text = "THEKEDAAR — CHASSIS"
+theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
+
+[node name="Health" type="ProgressBar" parent="BossPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 24)
+max_value = 1500.0
+value = 1500.0
+
+[node name="Modules" type="Label" parent="BossPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+
+[node name="Subtitle" type="Label" parent="CinematicOverlay"]
+visible = false
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.63
+anchor_bottom = 0.63
+offset_left = -480.0
+offset_right = 480.0
+offset_bottom = 35.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 7
+mouse_filter = 2
 horizontal_alignment = 1

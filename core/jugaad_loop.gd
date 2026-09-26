@@ -7,6 +7,8 @@ signal feedback(message: String)
 signal weapon_placed(weapon: JugaadWeapon)
 signal weapon_picked_up(weapon: JugaadWeapon)
 signal components_scattered(items: Array[JunkComponent])
+signal weapon_crafted(weapon: JugaadWeapon)
+signal item_action(action: StringName)
 
 const COMPONENT: PackedScene = preload("res://components/junk_component.tscn")
 const WEAPON: PackedScene = preload("res://weapons/jugaad_weapon.tscn")
@@ -20,6 +22,8 @@ var carried_weapon: JugaadWeapon
 var player: JugaadPlayer
 var workshop: Workshop
 var enemies: Node2D
+# M7A: handed to every crafted Jugaad so mods apply to existing and future weapons.
+var upgrades: UpgradeSystem
 var active: bool = true
 var _message_remaining: float = 0.0
 @onready var components: Node2D = $Components
@@ -109,6 +113,7 @@ func interact() -> void:
 	nearest.reparent(player)
 	nearest.position = Vector2(-24 if use_left else 24, -24)
 	nearest.set_held(true)
+	item_action.emit(&"pickup")
 	_show_feedback("Picked up " + nearest.display_name())
 	_update_hands()
 
@@ -169,6 +174,7 @@ func drop_hand(left: bool) -> void:
 	else:
 		right_hand = null
 	_show_feedback("Dropped " + item.display_name())
+	item_action.emit(&"drop")
 	_update_hands()
 
 func combine() -> void:
@@ -179,6 +185,7 @@ func combine() -> void:
 		return
 	var recipe: int = JugaadRecipes.resolve(left_hand.component_type, right_hand.component_type)
 	if recipe < 0:
+		item_action.emit(&"combine_fail")
 		_show_feedback("Recipe not implemented yet. Both components kept.")
 		return
 	left_hand.queue_free()
@@ -189,7 +196,9 @@ func combine() -> void:
 	carried_weapon.kind = recipe
 	carried_weapon.enemies = enemies
 	carried_weapon.projectiles = projectiles
+	carried_weapon.upgrades = upgrades
 	player.add_child(carried_weapon)
+	weapon_crafted.emit(carried_weapon)
 	carried_weapon.position = Vector2(0, -52)
 	carried_weapon_changed.emit(carried_weapon)
 	_update_hands()

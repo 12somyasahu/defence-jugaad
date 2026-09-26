@@ -116,7 +116,7 @@ func _process(delta: float) -> void:
 		return
 	if wave_director.state == WaveDirector.State.COMBAT:
 		_combat_elapsed += delta
-		if _scheduled_at >= 0.0 and _combat_elapsed >= _scheduled_at:
+		if not wave_director.boss_combat and _scheduled_at >= 0.0 and _combat_elapsed >= _scheduled_at:
 			_scheduled_at = -1.0
 			_start_random(COMBAT_EVENTS)
 		if _rush_left > 0:
@@ -135,7 +135,7 @@ func _on_wave_started(wave: int) -> void:
 	_combat_elapsed = 0.0
 	_scheduled_at = -1.0
 	# At most one normal combat event per wave, never in the first wave(s).
-	if running and wave >= first_event_wave and rng.randf() < combat_event_chance:
+	if running and not wave_director.boss_combat and wave >= first_event_wave and rng.randf() < combat_event_chance:
 		_scheduled_at = rng.randf_range(combat_event_window.x, combat_event_window.y)
 
 func _on_wave_state_changed(state: WaveDirector.State, wave: int) -> void:

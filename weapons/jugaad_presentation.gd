@@ -4,9 +4,32 @@ extends Node2D
 @onready var jam_warning: Node2D = $JamWarning
 var _weapon: JugaadWeapon
 var _punch_tween: Tween
+var _repair_feedback: Label
+var _feedback_remaining: float = 0.0
+
+func _process(delta: float) -> void:
+	_feedback_remaining = maxf(0.0, _feedback_remaining - delta)
+	_repair_feedback.visible = _feedback_remaining > 0.0
+
+func _show_repair_feedback(text: String, tint: Color) -> void:
+	_repair_feedback.text = text
+	_repair_feedback.modulate = tint
+	_feedback_remaining = 0.8
+	_repair_feedback.show()
 
 func _ready() -> void:
 	_weapon = get_parent() as JugaadWeapon
+	# Separate transient feedback from the authoritative maintenance status label.
+	_repair_feedback = Label.new()
+	_repair_feedback.name = "RepairFeedback"
+	_repair_feedback.position = Vector2(-75, -65)
+	_repair_feedback.size.x = 150
+	_repair_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_repair_feedback.add_theme_font_size_override("font_size", 14)
+	_repair_feedback.add_theme_color_override("font_outline_color", Color.BLACK)
+	_repair_feedback.add_theme_constant_override("outline_size", 4)
+	add_child(_repair_feedback)
+	_repair_feedback.hide()
 	if jam_warning:
 		jam_warning.hide()
 
@@ -50,10 +73,7 @@ func _on_repair_hit(progress: int, required: int) -> void:
 		_punch_tween.tween_property(sprite, "scale", sprite.scale * 1.15, 0.08).set_trans(Tween.TRANS_QUAD)
 		_punch_tween.chain().tween_property(sprite, "scale", sprite.scale, 0.12)
 
-	var maint_label: Label = _weapon.get_node_or_null("Maintenance") as Label
-	if maint_label:
-		maint_label.text = "THAK! [%d/%d]" % [progress, required]
-		maint_label.modulate = Color(1.0, 0.85, 0.2, 1.0)
+	_show_repair_feedback("THAK! [%d/%d]" % [progress, required], Color.GOLD)
 
 func _on_repaired() -> void:
 	if not is_instance_valid(_weapon):
@@ -68,10 +88,7 @@ func _on_repaired() -> void:
 		_punch_tween = create_tween()
 		_punch_tween.tween_property(sprite, "modulate", Color.WHITE, 0.35)
 
-	var maint_label: Label = _weapon.get_node_or_null("Maintenance") as Label
-	if maint_label:
-		maint_label.text = "REPAIRED!"
-		maint_label.modulate = Color(0.4, 1.0, 0.4, 1.0)
+	_show_repair_feedback("REPAIRED!", Color.LIGHT_GREEN)
 
 func _on_instability_changed(current: float, maximum: float) -> void:
 	if not is_instance_valid(_weapon) or _weapon.jammed:

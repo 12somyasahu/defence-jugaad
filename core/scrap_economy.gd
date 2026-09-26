@@ -22,6 +22,14 @@ func _on_enemy_died(enemy: Gunda) -> void:
 	scrap_changed.emit(scrap)
 	scrap_earned.emit(reward)
 
+## DEBUG builds only (F11 / tests). Does not emit scrap_earned, so it never shows as a kill reward.
+func debug_grant(amount: int) -> bool:
+	if not OS.is_debug_build() or not active or amount <= 0:
+		return false
+	scrap += amount
+	scrap_changed.emit(scrap)
+	return true
+
 func try_spend(amount: int) -> bool:
 	if not active or amount <= 0 or scrap < amount:
 		return false

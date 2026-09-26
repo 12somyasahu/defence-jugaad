@@ -9,11 +9,21 @@ const SLOT_ACTIVE = preload("res://assets/ui/hud_slot_active.png")
 @onready var wave_label: Label = $MarginContainer/TopPanel/WaveInfo/WaveLabel
 @onready var scrap_label: Label = $MarginContainer/TopPanel/WaveInfo/ScrapLabel
 @onready var phase_label: Label = $MarginContainer/TopPanel/WaveInfo/PhaseLabel
-@onready var announcement_band: ColorRect = $AnnouncementBand
-@onready var announcement_label: Label = $Announcement
+@onready var mods_label: Label = $MarginContainer/TopPanel/WaveInfo/ModsLabel
+@onready var announcement_band: ColorRect = $CinematicOverlay/AnnouncementBand
+@onready var announcement_label: Label = $CinematicOverlay/Announcement
 var _announcement_tween: Tween
 var _hp_flash_tween: Tween
 var _last_hp: float = -1.0
+var _pulse_time: float = 0.0
+var _urgent: bool = false
+var _low_hp: bool = false
+
+func _process(delta: float) -> void:
+	_pulse_time += delta
+	var pulse: float = 0.78 + 0.22 * sin(_pulse_time * 8.0)
+	phase_label.modulate.a = pulse if _urgent else 1.0
+	workshop_hp_label.modulate.a = pulse if _low_hp else 1.0
 
 @onready var left_slot: TextureRect = $MarginContainer/BottomPanel/Hands/LeftHand/SlotBackground
 @onready var left_icon: TextureRect = $MarginContainer/BottomPanel/Hands/LeftHand/SlotBackground/ItemIcon
@@ -47,6 +57,7 @@ func update_workshop_hp(current_hp: float, max_hp: float = 100.0) -> void:
 		health_bar.max_value = max_hp
 		health_bar.value = current_hp
 		var ratio: float = current_hp / maxf(1.0, max_hp)
+		_low_hp = ratio > 0.0 and ratio <= 0.25
 		# Tint progress bar by ratio: green / amber / red
 		if ratio > 0.60:
 			health_bar.tint_progress = Color(0.3, 0.85, 0.3, 1.0)
@@ -128,21 +139,29 @@ func set_wave_status(text: String) -> void:
 		return
 	phase_label.text = text
 	phase_label.visible = not text.is_empty()
+	_urgent = false
 
 	# Dynamic visual identity per phase
 	if text.contains("PREPARE") or text.contains("NEXT WAVE"):
-		if text.contains("00:0") and text.substr(text.find("00:0") + 4, 1).to_int() <= 5:
-			phase_label.modulate = Color(1.0, 0.7, 0.2, 1.0) # Urgency warning
+		if text.contains("00:0") and text.substr(text.find("00:0") + 4, 1).to_int() < 5:
+			_urgent = true
+			phase_label.modulate = Color("ffbb33")
 		else:
-			phase_label.modulate = Color(0.4, 0.92, 0.65, 1.0) # Calm green
+			phase_label.modulate = Color("55ff99")
 	elif text.contains("INCOMING"):
-		phase_label.modulate = Color(1.0, 0.75, 0.15, 1.0) # Amber countdown
-	elif text.contains("ENEMIES REMAINING"):
-		phase_label.modulate = Color(0.95, 0.35, 0.25, 1.0) # Danger combat red
+		phase_label.modulate = Color("ffbb33")
+	elif text.contains("ENEMIES REMAINING") or text.contains("COMBAT"):
+		phase_label.modulate = Color("ff4444")
 	elif text.contains("CLEARED"):
-		phase_label.modulate = Color(1.0, 0.88, 0.25, 1.0) # Celebratory gold
+		phase_label.modulate = Color("ffd700")
 	else:
 		phase_label.modulate = Color(0.95, 0.77, 0.06, 1.0)
+
+## Prototype owned-mod strip ("MODS: A | B"). Empty list hides it.
+func set_owned_mods(mod_names: Array[String]) -> void:
+	if mods_label:
+		mods_label.text = "MODS: " + " | ".join(mod_names)
+		mods_label.visible = not mod_names.is_empty()
 
 ## Big centred banner (countdown, expansion, victory). seconds <= 0 keeps it until replaced.
 func show_announcement(text: String, seconds: float = 2.0) -> void:
@@ -161,6 +180,7 @@ func show_announcement(text: String, seconds: float = 2.0) -> void:
 	announcement_label.modulate = Color.WHITE
 	announcement_label.show()
 	if announcement_band:
+		announcement_band.modulate.a = 1.0
 		announcement_band.show()
 
 	# Dramatic entrance punch / scale animation
@@ -215,7 +235,7 @@ func set_prompt(prompt_text: String) -> void:
 		prompt_label.modulate = Color(1.0, 0.8, 0.6, 1.0)
 
 ## End-Game Presentation Panels
-func show_victory(total_waves: int, final_scrap: int) -> void:
+func show_victory(total_waves: int, final_scrap: int, stats: Dictionary = {}) -> void:
 	if end_game_overlay:
 		end_game_overlay.show()
 	if defeat_panel:
@@ -223,12 +243,14 @@ func show_victory(total_waves: int, final_scrap: int) -> void:
 	if victory_panel:
 		if victory_stats:
 			victory_stats.text = "All %d Waves Defended Successfully!\nTotal Scrap Collected: %d" % [total_waves, final_scrap]
+			if not stats.is_empty():
+				victory_stats.text = "Waves: %d + THEKEDAAR\n%s" % [stats.waves, _stats_text(stats)]
 		victory_panel.show()
 		victory_panel.modulate.a = 0.0
 		var tw = create_tween()
 		tw.tween_property(victory_panel, "modulate:a", 1.0, 0.5)
 
-func show_defeat(wave: int, final_scrap: int) -> void:
+func show_defeat(wave: int, final_scrap: int, stats: Dictionary = {}, boss_reached: bool = false) -> void:
 	if end_game_overlay:
 		end_game_overlay.show()
 	if victory_panel:
@@ -236,7 +258,25 @@ func show_defeat(wave: int, final_scrap: int) -> void:
 	if defeat_panel:
 		if defeat_stats:
 			defeat_stats.text = "Workshop Destroyed on Wave %d.\nScrap Salvaged: %d" % [wave, final_scrap]
+			if not stats.is_empty():
+				defeat_stats.text = "Wave Reached: %s\n%s" % ["THEKEDAAR" if boss_reached else str(wave), _stats_text(stats)]
 		defeat_panel.show()
 		defeat_panel.modulate.a = 0.0
 		var tw = create_tween()
 		tw.tween_property(defeat_panel, "modulate:a", 1.0, 0.5)
+
+func _stats_text(stats: Dictionary) -> String:
+	return "Enemies Thoked: %d\nJugaads Built: %d\nScrap Collected: %d\nTHOKs: %d" % [stats.kills, stats.built, stats.scrap, stats.thoks]
+
+func update_boss(hp: int, maximum: int, speaker: bool, battery: bool, engine: bool) -> void:
+	$BossPanel.show()
+	$BossPanel/VBox/Health.max_value = maximum
+	$BossPanel/VBox/Health.value = hp
+	$BossPanel/VBox/Modules.text = "SPEAKER: %s\nBATTERY: %s\nENGINE: %s" % ["ACTIVE" if speaker else "DESTROYED", "ACTIVE" if battery else "DESTROYED", "ACTIVE" if engine else "DESTROYED"]
+
+func hide_boss() -> void:
+	$BossPanel.hide()
+
+func show_subtitle(text: String, _seconds: float) -> void:
+	$CinematicOverlay/Subtitle.text = text
+	$CinematicOverlay/Subtitle.visible = not text.is_empty()

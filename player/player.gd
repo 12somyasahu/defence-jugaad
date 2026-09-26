@@ -14,6 +14,13 @@ var enemies: Node2D
 var contact_remaining: float = 0.0
 var knockback: Vector2 = Vector2.ZERO
 
+func receive_disruption(impulse: Vector2) -> void:
+	if not active:
+		return
+	knockback = impulse.limit_length(420.0)
+	contact_remaining = contact_cooldown
+	hit.emit(impulse.normalized())
+
 func _physics_process(delta: float) -> void:
 	if not active:
 		velocity = Vector2.ZERO

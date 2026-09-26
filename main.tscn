@@ -12,6 +12,10 @@
 [ext_resource type="Script" uid="uid://d08w0gmewsptq" path="res://core/wave_director.gd" id="10"]
 [ext_resource type="PackedScene" path="res://core/attack_route.tscn" id="11"]
 [ext_resource type="Script" uid="uid://6hwaq6jdyeq8" path="res://core/event_director.gd" id="12"]
+[ext_resource type="Script" uid="uid://cb8mya5pugmox" path="res://core/upgrade_system.gd" id="13"]
+[ext_resource type="Script" uid="uid://c4e84ph23d178" path="res://core/boss_director.gd" id="14"]
+[ext_resource type="Script" uid="uid://cxwffu8vrb1ep" path="res://core/run_stats.gd" id="15"]
+[ext_resource type="Script" uid="uid://bq570arqeo12o" path="res://audio/audio_manager.gd" id="16"]
 
 [node name="Main" type="Node2D" unique_id=943374884]
 script = ExtResource("1")
@@ -100,3 +104,15 @@ script = ExtResource("10")
 
 [node name="EventDirector" type="Node" parent="." unique_id=965061059]
 script = ExtResource("12")
+
+[node name="UpgradeSystem" type="Node" parent="."]
+script = ExtResource("13")
+
+[node name="RunStats" type="Node" parent="."]
+script = ExtResource("15")
+
+[node name="AudioManager" type="Node" parent="."]
+script = ExtResource("16")
+
+[node name="BossDirector" type="Node" parent="."]
+script = ExtResource("14")

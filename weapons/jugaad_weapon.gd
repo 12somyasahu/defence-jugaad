@@ -9,6 +9,8 @@ signal repair_hit(progress: int, required: int)
 signal repaired
 signal picked_up
 signal power_changed(powered: bool)
+# THANDA THANDA aura coverage changed (presentation hook).
+signal cooled_changed(value: bool)
 
 enum Kind { CHAKRI_GUN, DHAMAAL_BOX, PRESSURE_HORN, BIJLI_CHAKRI, TURBO_PANKHA, JHATKA_SLING, PRESSURE_CHAKRA, COOKER_CANNON, AANDHI_DJ }
 const NAMES: Array[String] = ["Chakri Gun", "Dhamaal Box", "Pressure Horn", "Bijli Chakri", "Turbo Pankha", "Jhatka Sling", "Pressure Chakra", "Cooker Cannon", "Aandhi DJ"]
@@ -21,6 +23,8 @@ const RANGES: Array[float] = [260.0, 140.0, 190.0, 95.0, 170.0, 380.0, 85.0, 330
 const COOLDOWNS: Array[float] = [0.35, 1.2, 1.5, 0.45, 0.65, 2.4, 0.2, 2.8, 0.3]
 const DAMAGE: Array[int] = [10, 12, 3, 6, 4, 60, 5, 42, 2]
 const INSTABILITY_PER_ATTACK: Array[float] = [2.0, 20.0, 12.5, 6.0, 7.0, 12.0, 5.0, 22.0, 5.0]
+# Push strength for knockback Jugaads (0 = no knockback behaviour).
+const KNOCKBACK: Array[float] = [0.0, 0.0, 300.0, 0.0, 120.0, 0.0, 0.0, 0.0, 70.0]
 # Presentation only, indexed by Kind. Dhamaal Box has no production PNG yet; its SVG placeholder is kept.
 const TEXTURES: Array[Texture2D] = [
 	preload("res://assets/jugaads/chakri_gun.png"),
@@ -43,14 +47,21 @@ var power_cut: bool = false
 var facing: Vector2 = Vector2.RIGHT
 var enemies: Node2D
 var projectiles: Node2D
+# M7A mods. Null (or nothing owned) means exact base stats.
+var upgrades: UpgradeSystem
+# Presentation state: inside a THANDA THANDA aura right now.
+var cooled: bool = false
+var _base_repair_hits: int = 3
 var attack_range: float = 260.0
 var attack_cooldown: float = 0.35
 var _remaining: float = 0.0
 var _flash: float = 0.0
 
 func _ready() -> void:
-	attack_range = RANGES[kind]
-	attack_cooldown = COOLDOWNS[kind]
+	_base_repair_hits = repair_hits_required
+	if upgrades != null:
+		upgrades.mods_changed.connect(_on_mods_changed)
+	refresh_stats()
 	$Name.text = NAMES[kind]
 	var sprite: Sprite2D = $Sprite
 	sprite.texture = TEXTURES[kind]
@@ -66,6 +77,38 @@ func _ready() -> void:
 		part.position = Vector2(-12 if i == 0 else 12, 0)
 		part.scale = Vector2.ONE * 0.65
 	_update_maintenance()
+
+## Re-reads mod-dependent stats. Base values are never mutated.
+func refresh_stats() -> void:
+	attack_range = RANGES[kind] * _mult("range")
+	if attack_range > RANGES[kind]:
+		attack_range = minf(attack_range, maxf(RANGES[kind], UpgradeTable.MAX_MODIFIED_RANGE))
+	attack_cooldown = COOLDOWNS[kind] * _mult("cooldown")
+	repair_hits_required = upgrades.repair_hits(kind, _base_repair_hits) if upgrades != null else _base_repair_hits
+	if is_node_ready():
+		_update_maintenance()
+		queue_redraw()
+
+func damage_per_hit() -> int:
+	return roundi(DAMAGE[kind] * _mult("damage"))
+
+func instability_per_attack() -> float:
+	var value: float = INSTABILITY_PER_ATTACK[kind]
+	if upgrades != null:
+		value *= upgrades.multiplier(kind, "instability", self)
+	return value
+
+func knockback_strength() -> float:
+	return KNOCKBACK[kind] * _mult("knockback")
+
+func blast_radius_multiplier() -> float:
+	return _mult("blast_radius")
+
+func _mult(stat: String) -> float:
+	return upgrades.multiplier(kind, stat) if upgrades != null else 1.0
+
+func _on_mods_changed(_owned: Array[StringName]) -> void:
+	refresh_stats()
 
 func place_at(world_position: Vector2, direction: Vector2) -> void:
 	global_position = world_position
@@ -119,7 +162,12 @@ func force_jam() -> bool:
 	return true
 
 func _add_instability() -> void:
-	instability = minf(maximum_instability, instability + INSTABILITY_PER_ATTACK[kind])
+	add_instability(instability_per_attack())
+
+func add_instability(amount: float) -> void:
+	if not active or not is_placed or jammed or amount <= 0.0:
+		return
+	instability = minf(maximum_instability, instability + amount)
 	instability_changed.emit(instability, maximum_instability)
 	if instability >= maximum_instability:
 		_jam()
@@ -139,10 +187,17 @@ func _update_maintenance() -> void:
 		$Maintenance.text += "\nBIJLI GAYI! OFFLINE"
 		if not jammed:
 			$Maintenance.modulate = Color.LIGHT_STEEL_BLUE
+	if cooled:
+		$Maintenance.text += "  THANDA"
 
 func _physics_process(delta: float) -> void:
 	_flash = maxf(0, _flash - delta)
 	queue_redraw()
+	var now_cooled: bool = upgrades != null and upgrades.is_cooled(self)
+	if now_cooled != cooled:
+		cooled = now_cooled
+		cooled_changed.emit(cooled)
+		_update_maintenance()
 	if not active or jammed or power_cut or not is_placed or not is_instance_valid(enemies):
 		return
 	_remaining = maxf(0, _remaining - delta)
@@ -174,7 +229,7 @@ func _physics_process(delta: float) -> void:
 			if facing.is_zero_approx():
 				facing = Vector2.RIGHT
 			var scrap: ScrapProjectile = PROJECTILE.new()
-			scrap.damage = DAMAGE[kind]
+			scrap.damage = damage_per_hit()
 			if kind == Kind.JHATKA_SLING:
 				scrap.projectile_color = Color.CYAN
 				scrap.projectile_size = Vector2(18, 8)
@@ -184,18 +239,19 @@ func _physics_process(delta: float) -> void:
 			scrap.global_position = global_position
 		Kind.DHAMAAL_BOX, Kind.BIJLI_CHAKRI, Kind.PRESSURE_CHAKRA:
 			for enemy in targets:
-				enemy.receive_damage(DAMAGE[kind])
+				enemy.receive_damage(damage_per_hit())
 		Kind.PRESSURE_HORN, Kind.TURBO_PANKHA, Kind.AANDHI_DJ:
-			var push: float = 300.0 if kind == Kind.PRESSURE_HORN else (120.0 if kind == Kind.TURBO_PANKHA else 70.0)
+			var push: float = knockback_strength()
 			for enemy in targets:
-				enemy.receive_damage(DAMAGE[kind])
+				enemy.receive_damage(damage_per_hit())
 				var away: Vector2 = (enemy.global_position - global_position).normalized()
 				enemy.apply_knockback((facing if away.is_zero_approx() else away) * push)
 		Kind.COOKER_CANNON:
 			var shell = CANNON_SHELL.new()
 			shell.target_position = nearest.global_position
 			shell.enemies = enemies
-			shell.damage = DAMAGE[kind]
+			shell.damage = damage_per_hit()
+			shell.blast_radius *= blast_radius_multiplier()
 			projectiles.add_child(shell)
 			shell.global_position = global_position
 	fired.emit()
