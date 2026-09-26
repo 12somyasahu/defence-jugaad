@@ -346,6 +346,11 @@ func _restart() -> void:
 	event.pressed = true
 	Input.parse_input_event(event)
 	await _frames(3)
+	# reload_current_scene() is deferred; heavier production assets can push the swap past 3 physics ticks.
+	for i in 30:
+		if current_scene != null and current_scene != main:
+			break
+		await _frames(1)
 	event.pressed = false
 	Input.parse_input_event(event)
 	check(current_scene != main and current_scene.get_node("BossDirector").stage == &"idle", "R resets entire boss run")

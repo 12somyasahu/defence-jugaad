@@ -552,6 +552,7 @@ value = 1500.0
 show_percentage = false
 
 [node name="Frame" type="TextureRect" parent="BossPanel/VBox/Health"]
+show_behind_parent = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
